@@ -14,8 +14,7 @@ import { calculateFramingham, framinghamCategory } from '../calculators/framingh
 import { calculateASCVD, ascvdCategory } from '../calculators/ascvd';
 import { getAIInterpretation } from '../services/openai';
 
-// TODO: move API key to secure storage in production
-const OPENAI_API_KEY = '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';
+const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY ?? '';
 
 interface Props {
   onResult: (result: RiskResult) => void;
