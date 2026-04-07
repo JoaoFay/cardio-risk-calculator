@@ -12,8 +12,14 @@ export async function getHemogramaInterpretation(input: HemogramaInput): Promise
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error?.error || 'Erro ao contactar a API de IA');
+    let errorMsg = 'Erro ao contactar a API de IA';
+    try {
+      const error = await response.json();
+      errorMsg = error?.error || errorMsg;
+    } catch {
+      // response body is not JSON — use default message
+    }
+    throw new Error(errorMsg);
   }
 
   const data = await response.json();

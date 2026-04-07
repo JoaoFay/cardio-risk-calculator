@@ -11,6 +11,33 @@ import {
 import { HemogramaInput, HemogramaResult, Sex } from '../types';
 import { getHemogramaInterpretation } from '../services/hemograma';
 
+interface FieldProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  required?: boolean;
+}
+
+function Field({ label, value, onChange, placeholder, required }: FieldProps) {
+  return (
+    <>
+      <Text style={styles.label}>
+        {label}
+        {required && <Text style={styles.required}> *</Text>}
+      </Text>
+      <TextInput
+        style={styles.input}
+        keyboardType="numeric"
+        value={value}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor="#aaa"
+      />
+    </>
+  );
+}
+
 interface Props {
   onResult: (result: HemogramaResult) => void;
   onBack: () => void;
@@ -90,32 +117,6 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
     }
   }
 
-  function Field({
-    label,
-    value,
-    onChange,
-    placeholder,
-  }: {
-    label: string;
-    value: string;
-    onChange: (v: string) => void;
-    placeholder: string;
-  }) {
-    return (
-      <>
-        <Text style={styles.label}>{label}</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={value}
-          onChangeText={onChange}
-          placeholder={placeholder}
-          placeholderTextColor="#aaa"
-        />
-      </>
-    );
-  }
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -130,6 +131,8 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
           ⚠️ Ferramenta educacional. Não substitui avaliação médica presencial.
         </Text>
       </View>
+
+      <Text style={styles.requiredLegend}><Text style={styles.required}>*</Text> Campo obrigatório</Text>
 
       <Text style={styles.label}>Sexo</Text>
       <View style={styles.sexRow}>
@@ -159,10 +162,10 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
       <Field label="Hemácias (T/L)" value={hemacias} onChange={setHemacias}
         placeholder={sex === 'male' ? 'Ref: 4,5 – 6,0' : 'Ref: 4,0 – 5,5'} />
       <Field label="Hemoglobina (g/dL)" value={hemoglobina} onChange={setHemoglobina}
-        placeholder={sex === 'male' ? 'Ref: 13,5 – 17,5' : 'Ref: 12,0 – 16,0'} />
+        placeholder={sex === 'male' ? 'Ref: 13,5 – 17,5' : 'Ref: 12,0 – 16,0'} required />
       <Field label="Hematócrito (%)" value={hematocrito} onChange={setHematocrito}
-        placeholder={sex === 'male' ? 'Ref: 41 – 53' : 'Ref: 36 – 46'} />
-      <Field label="VCM (fL)" value={vcm} onChange={setVcm} placeholder="Ref: 80 – 100" />
+        placeholder={sex === 'male' ? 'Ref: 41 – 53' : 'Ref: 36 – 46'} required />
+      <Field label="VCM (fL)" value={vcm} onChange={setVcm} placeholder="Ref: 80 – 100" required />
       <Field label="HCM (pg)" value={hcm} onChange={setHcm} placeholder="Ref: 27 – 33" />
       <Field label="CHCM (g/dL)" value={chcm} onChange={setChcm} placeholder="Ref: 32 – 36" />
       <Field label="RDW (%)" value={rdw} onChange={setRdw} placeholder="Ref: 11,5 – 14,5" />
@@ -173,13 +176,14 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
       </View>
 
       <Field label="Leucócitos totais (/mm³)" value={leucocitos} onChange={setLeucocitos}
-        placeholder="Ref: 4.000 – 10.000" />
-      <Field label="Neutrófilos (%)" value={neutrofilosPct} onChange={setNeutrofilosPct}
+        placeholder="Ref: 4.000 – 10.000" required />
+      <Field label="Neutrófilos (%) *" value={neutrofilosPct} onChange={setNeutrofilosPct}
         placeholder="Ref: 45 – 75" />
-      <Field label="Neutrófilos absolutos (/mm³)" value={neutrofilosAbs} onChange={setNeutrofilosAbs}
+      <Field label="Neutrófilos absolutos (/mm³) *" value={neutrofilosAbs} onChange={setNeutrofilosAbs}
         placeholder="Ref: 1.800 – 7.500" />
+      <Text style={styles.fieldNote}>* Preencha ao menos um dos dois campos de Neutrófilos</Text>
       <Field label="Linfócitos (%)" value={linfocitosPct} onChange={setLinfocitosPct}
-        placeholder="Ref: 20 – 40" />
+        placeholder="Ref: 20 – 40" required />
       <Field label="Monócitos (%)" value={monocitosPct} onChange={setMonocitosPct}
         placeholder="Ref: 2 – 8" />
       <Field label="Eosinófilos (%)" value={eosinofilosPct} onChange={setEosinofilosPct}
@@ -261,7 +265,10 @@ const styles = StyleSheet.create({
     borderLeftColor: '#f39c12',
     borderRadius: 6,
     padding: 12,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   disclaimerText: { fontSize: 13, color: '#7d5a00' },
+  required: { color: '#c0392b', fontWeight: 'bold' },
+  requiredLegend: { fontSize: 12, color: '#888', marginBottom: 8 },
+  fieldNote: { fontSize: 12, color: '#888', marginTop: 4, marginBottom: 4, fontStyle: 'italic' },
 });
