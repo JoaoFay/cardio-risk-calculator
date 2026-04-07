@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { HemogramaInput, HemogramaResult, Sex } from '../types';
 import { getHemogramaInterpretation } from '../services/hemograma';
+import { getLastExamByType } from '../storage/examStorage';
 
 interface FieldProps {
   label: string;
@@ -39,7 +40,7 @@ function Field({ label, value, onChange, placeholder, required }: FieldProps) {
 }
 
 interface Props {
-  onResult: (result: HemogramaResult) => void;
+  onResult: (result: HemogramaResult, input: HemogramaInput) => void;
   onBack: () => void;
 }
 
@@ -107,11 +108,12 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
 
     setLoading(true);
     try {
-      const aiInterpretation = await getHemogramaInterpretation(input);
-      onResult({ aiInterpretation });
+      const previousExam = await getLastExamByType('hemograma');
+      const aiInterpretation = await getHemogramaInterpretation(input, previousExam ?? undefined);
+      onResult({ aiInterpretation }, input);
     } catch (e: any) {
       Alert.alert('Erro na IA', e.message);
-      onResult({ aiInterpretation: 'Não foi possível obter a interpretação da IA.' });
+      onResult({ aiInterpretation: 'Não foi possível obter a interpretação da IA.' }, input);
     } finally {
       setLoading(false);
     }

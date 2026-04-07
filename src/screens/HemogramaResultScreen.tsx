@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { HemogramaResult } from '../types';
+import { HemogramaResult, HemogramaInput, SavedExam } from '../types';
+import SaveExamModal from '../components/SaveExamModal';
 
 interface Props {
   result: HemogramaResult;
+  input: HemogramaInput;
   onBack: () => void;
 }
 
-export default function HemogramaResultScreen({ result, onBack }: Props) {
+export default function HemogramaResultScreen({ result, input, onBack }: Props) {
+  const [savedExam, setSavedExam] = useState<SavedExam | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Resultado — Hemograma</Text>
@@ -23,9 +28,28 @@ export default function HemogramaResultScreen({ result, onBack }: Props) {
         </Text>
       </View>
 
+      {savedExam ? (
+        <View style={styles.savedBadge}>
+          <Text style={styles.savedText}>✓ Exame salvo em {savedExam.examDateDisplay}</Text>
+        </View>
+      ) : (
+        <TouchableOpacity style={styles.saveButton} onPress={() => setModalVisible(true)}>
+          <Text style={styles.saveButtonText}>Salvar este exame</Text>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity style={styles.button} onPress={onBack}>
         <Text style={styles.buttonText}>Nova Consulta</Text>
       </TouchableOpacity>
+
+      <SaveExamModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSaved={(exam) => { setSavedExam(exam); setModalVisible(false); }}
+        type="hemograma"
+        input={input}
+        result={result}
+      />
     </ScrollView>
   );
 }
@@ -54,11 +78,24 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
   },
-  disclaimer: {
-    fontSize: 12,
-    color: '#7d5a00',
-    lineHeight: 18,
+  disclaimer: { fontSize: 12, color: '#7d5a00', lineHeight: 18 },
+  saveButton: {
+    borderWidth: 2,
+    borderColor: '#2980b9',
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 12,
   },
+  saveButtonText: { color: '#2980b9', fontSize: 15, fontWeight: '600' },
+  savedBadge: {
+    backgroundColor: '#eafaf1',
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  savedText: { color: '#27ae60', fontWeight: '600', fontSize: 14 },
   button: {
     backgroundColor: '#2980b9',
     padding: 16,

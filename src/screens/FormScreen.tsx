@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,14 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { PatientInput, RiskResult } from '../types';
+import { PatientInput, RiskResult, LipidogramaInput } from '../types';
 import { calculateFramingham, framinghamCategory } from '../calculators/framingham';
 import { calculateASCVD, ascvdCategory } from '../calculators/ascvd';
 import { getAIInterpretation } from '../services/openai';
+import { getLastExamByType } from '../storage/examStorage';
 
 interface Props {
-  onResult: (result: RiskResult) => void;
+  onResult: (result: RiskResult, input: PatientInput) => void;
   onBack: () => void;
 }
 
@@ -30,6 +31,19 @@ export default function FormScreen({ onResult, onBack }: Props) {
   const [smoker, setSmoker] = useState(false);
   const [diabetic, setDiabetic] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [autoFillDate, setAutoFillDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    getLastExamByType('lipidograma').then(exam => {
+      if (!exam) return;
+      const i = exam.input as LipidogramaInput;
+      setTotalCholesterol(String(i.totalCholesterol));
+      setLdl(String(i.ldl));
+      setHdl(String(i.hdl));
+      setAutoFillDate(exam.examDateDisplay);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleCalculate() {
     const ageN = parseInt(age);
@@ -71,11 +85,12 @@ export default function FormScreen({ onResult, onBack }: Props) {
 
     setLoading(true);
     try {
-      const interpretation = await getAIInterpretation(input, partialResult);
-      onResult({ ...partialResult, aiInterpretation: interpretation });
+      const previousExam = await getLastExamByType('cardio');
+      const interpretation = await getAIInterpretation(input, partialResult, previousExam ?? undefined);
+      onResult({ ...partialResult, aiInterpretation: interpretation }, input);
     } catch (e: any) {
       Alert.alert('Erro na IA', e.message);
-      onResult({ ...partialResult, aiInterpretation: 'Não foi possível obter a interpretação da IA.' });
+      onResult({ ...partialResult, aiInterpretation: 'Não foi possível obter a interpretação da IA.' }, input);
     } finally {
       setLoading(false);
     }
@@ -94,6 +109,22 @@ export default function FormScreen({ onResult, onBack }: Props) {
           ⚠️ Ferramenta educacional. Não substitui avaliação médica presencial.
         </Text>
       </View>
+
+      {autoFillDate && (
+        <View style={styles.autoFillBanner}>
+          <Text style={styles.autoFillText}>
+            Colesterol, LDL e HDL preenchidos do lipidograma de {autoFillDate}
+          </Text>
+          <TouchableOpacity onPress={() => {
+            setTotalCholesterol('');
+            setLdl('');
+            setHdl('');
+            setAutoFillDate(null);
+          }}>
+            <Text style={styles.autoFillClose}>×</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <Text style={styles.label}>Sexo</Text>
       <View style={styles.sexRow}>
@@ -204,4 +235,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   disclaimerText: { fontSize: 13, color: '#7d5a00' },
+  autoFillBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3e5f5',
+    borderLeftWidth: 4,
+    borderLeftColor: '#8e44ad',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 8,
+  },
+  autoFillText: { flex: 1, fontSize: 12, color: '#6a1b9a' },
+  autoFillClose: { fontSize: 20, color: '#8e44ad', paddingLeft: 8 },
 });

@@ -1,17 +1,18 @@
-import { PatientInput, RiskResult } from '../types';
+import { PatientInput, RiskResult, SavedExam } from '../types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
 export async function getAIInterpretation(
   input: PatientInput,
-  result: RiskResult
+  result: RiskResult,
+  previousExam?: SavedExam,
 ): Promise<string> {
   const response = await fetch(`${API_URL}/api/interpret`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ input, result }),
+    body: JSON.stringify({ input, result, previousExam }),
   });
 
   if (!response.ok) {

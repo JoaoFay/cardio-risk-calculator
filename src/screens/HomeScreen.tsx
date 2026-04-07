@@ -4,9 +4,11 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 interface Props {
   onSelectCardio: () => void;
   onSelectHemograma: () => void;
+  onSelectLipidograma: () => void;
+  onSelectHistory: () => void;
 }
 
-export default function HomeScreen({ onSelectCardio, onSelectHemograma }: Props) {
+export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectHistory }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>MedCalc</Text>
@@ -38,6 +40,28 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma }: Props)
           </Text>
         </View>
         <Text style={[styles.cardArrow, styles.cardArrowHemograma]}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.card, styles.cardLipid]} onPress={onSelectLipidograma}>
+        <Text style={styles.cardIcon}>🧬</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitleLipid]}>Lipidograma</Text>
+          <Text style={styles.cardDescription}>
+            Interprete seu perfil lipídico com índices de Castelli I/II e TG/HDL, com correlação ao risco cardiovascular.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowLipid]}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.card, styles.cardHistory]} onPress={onSelectHistory}>
+        <Text style={styles.cardIcon}>📋</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitleHistory]}>Meu Histórico</Text>
+          <Text style={styles.cardDescription}>
+            Visualize exames salvos, evolução de marcadores e compare resultados ao longo do tempo.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowHistory]}>›</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -73,6 +97,8 @@ const styles = StyleSheet.create({
   },
   cardCardio: { borderLeftColor: '#c0392b' },
   cardHemograma: { borderLeftColor: '#2980b9' },
+  cardLipid: { borderLeftColor: '#8e44ad' },
+  cardHistory: { borderLeftColor: '#7f8c8d' },
   cardIcon: { fontSize: 32, marginRight: 16 },
   cardTextContainer: { flex: 1 },
   cardTitle: { fontSize: 17, fontWeight: 'bold', color: '#c0392b', marginBottom: 4 },
@@ -80,4 +106,8 @@ const styles = StyleSheet.create({
   cardDescription: { fontSize: 13, color: '#555', lineHeight: 18 },
   cardArrow: { fontSize: 28, color: '#c0392b', marginLeft: 8 },
   cardArrowHemograma: { color: '#2980b9' },
+  cardTitleLipid: { color: '#8e44ad' },
+  cardArrowLipid: { color: '#8e44ad' },
+  cardTitleHistory: { color: '#7f8c8d' },
+  cardArrowHistory: { color: '#7f8c8d' },
 });

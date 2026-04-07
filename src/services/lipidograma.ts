@@ -1,17 +1,18 @@
-import { HemogramaInput, SavedExam } from '../types';
+import { LipidogramaInput, LipidogramaResult, SavedExam } from '../types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
-export async function getHemogramaInterpretation(
-  input: HemogramaInput,
-  previousExam?: SavedExam,
+export async function getLipidogramaInterpretation(
+  input: LipidogramaInput,
+  result: Omit<LipidogramaResult, 'aiInterpretation'>,
+  cardioExam?: SavedExam,
 ): Promise<string> {
-  const response = await fetch(`${API_URL}/api/hemograma`, {
+  const response = await fetch(`${API_URL}/api/lipidograma`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ input, previousExam }),
+    body: JSON.stringify({ input, result, cardioExam }),
   });
 
   if (!response.ok) {
