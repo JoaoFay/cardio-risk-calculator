@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "cardio-risk-calculator",
+    "name": "Risco Cardiovascular",
     "slug": "cardio-risk-calculator",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.drjuaum.cardiorisk"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +22,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.drjuaum.cardiorisk"
     },
     "web": {
       "favicon": "./assets/favicon.png"

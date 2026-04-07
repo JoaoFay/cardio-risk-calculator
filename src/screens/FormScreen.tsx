@@ -14,8 +14,6 @@ import { calculateFramingham, framinghamCategory } from '../calculators/framingh
 import { calculateASCVD, ascvdCategory } from '../calculators/ascvd';
 import { getAIInterpretation } from '../services/openai';
 
-const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY ?? '';
-
 interface Props {
   onResult: (result: RiskResult) => void;
 }
@@ -72,7 +70,7 @@ export default function FormScreen({ onResult }: Props) {
 
     setLoading(true);
     try {
-      const interpretation = await getAIInterpretation(OPENAI_API_KEY, input, partialResult);
+      const interpretation = await getAIInterpretation(input, partialResult);
       onResult({ ...partialResult, aiInterpretation: interpretation });
     } catch (e: any) {
       Alert.alert('Erro na IA', e.message);
@@ -86,6 +84,12 @@ export default function FormScreen({ onResult }: Props) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Risco Cardiovascular</Text>
       <Text style={styles.subtitle}>Preencha os dados do paciente</Text>
+
+      <View style={styles.disclaimerBox}>
+        <Text style={styles.disclaimerText}>
+          ⚠️ Ferramenta educacional. Não substitui avaliação médica presencial.
+        </Text>
+      </View>
 
       <Text style={styles.label}>Sexo</Text>
       <View style={styles.sexRow}>
@@ -185,4 +189,13 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { backgroundColor: '#aaa' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  disclaimerBox: {
+    backgroundColor: '#fff8e1',
+    borderLeftWidth: 4,
+    borderLeftColor: '#f39c12',
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 8,
+  },
+  disclaimerText: { fontSize: 13, color: '#7d5a00' },
 });

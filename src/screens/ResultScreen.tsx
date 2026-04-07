@@ -45,9 +45,11 @@ export default function ResultScreen({ result, onBack }: Props) {
       <View style={styles.aiCard}>
         <Text style={styles.aiTitle}>Interpretação por IA</Text>
         <Text style={styles.aiText}>{result.aiInterpretation}</Text>
-        <Text style={styles.disclaimer}>
-          Esta ferramenta é educacional e não substitui avaliação médica presencial.
-        </Text>
+        <View style={styles.disclaimerBox}>
+          <Text style={styles.disclaimer}>
+            ⚠️ Esta ferramenta tem caráter exclusivamente educacional e não substitui avaliação médica presencial. Consulte um profissional de saúde para diagnóstico e tratamento.
+          </Text>
+        </View>
       </View>
 
       <TouchableOpacity style={styles.button} onPress={onBack}>
@@ -88,14 +90,18 @@ const styles = StyleSheet.create({
   },
   aiTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 12 },
   aiText: { fontSize: 14, color: '#444', lineHeight: 22 },
-  disclaimer: {
+  disclaimerBox: {
+    backgroundColor: '#fff8e1',
+    borderLeftWidth: 4,
+    borderLeftColor: '#f39c12',
+    borderRadius: 6,
+    padding: 12,
     marginTop: 16,
+  },
+  disclaimer: {
     fontSize: 12,
-    color: '#999',
-    fontStyle: 'italic',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    paddingTop: 12,
+    color: '#7d5a00',
+    lineHeight: 18,
   },
   button: {
     backgroundColor: '#c0392b',
