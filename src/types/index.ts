@@ -23,3 +23,30 @@ export interface RiskResult {
   };
   aiInterpretation: string;
 }
+
+export interface HemogramaInput {
+  sex: Sex;
+  // Eritrograma
+  hemacias: number;        // T/L
+  hemoglobina: number;     // g/dL
+  hematocrito: number;     // %
+  vcm: number;             // fL
+  hcm: number;             // pg
+  chcm: number;            // g/dL
+  rdw: number;             // %
+  // Leucograma
+  leucocitos: number;      // /mm³
+  neutrofilosPct: number;  // %
+  neutrofilosAbs: number;  // /mm³
+  linfocitosPct: number;   // %
+  monocitosPct: number;    // %
+  eosinofilosPct: number;  // %
+  basofilosPct: number;    // %
+  // Plaquetas
+  plaquetas: number;       // /mm³
+  vpm: number;             // fL
+}
+
+export interface HemogramaResult {
+  aiInterpretation: string;
+}

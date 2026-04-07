@@ -16,9 +16,10 @@ import { getAIInterpretation } from '../services/openai';
 
 interface Props {
   onResult: (result: RiskResult) => void;
+  onBack: () => void;
 }
 
-export default function FormScreen({ onResult }: Props) {
+export default function FormScreen({ onResult, onBack }: Props) {
   const [age, setAge] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('male');
   const [totalCholesterol, setTotalCholesterol] = useState('');
@@ -82,6 +83,9 @@ export default function FormScreen({ onResult }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <Text style={styles.backText}>‹ Voltar</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Risco Cardiovascular</Text>
       <Text style={styles.subtitle}>Preencha os dados do paciente</Text>
 
@@ -155,6 +159,8 @@ export default function FormScreen({ onResult }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   content: { padding: 20, paddingBottom: 40 },
+  backButton: { marginBottom: 8 },
+  backText: { fontSize: 16, color: '#c0392b', fontWeight: '500' },
   title: { fontSize: 24, fontWeight: 'bold', color: '#c0392b', marginBottom: 4 },
   subtitle: { fontSize: 14, color: '#666', marginBottom: 24 },
   label: { fontSize: 14, color: '#333', marginBottom: 6, marginTop: 12 },
