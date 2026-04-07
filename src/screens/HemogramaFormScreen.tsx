@@ -43,36 +43,39 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
   const [vpm, setVpm] = useState('');
 
   async function handleSubmit() {
-    const fields = {
-      hemacias, hemoglobina, hematocrito, vcm, hcm, chcm, rdw,
-      leucocitos, neutrofilosPct, neutrofilosAbs, linfocitosPct,
-      monocitosPct, eosinofilosPct, basofilosPct, plaquetas, vpm,
-    };
+    const requiredEmpty = [hemoglobina, hematocrito, vcm, leucocitos, linfocitosPct].some(
+      v => v.trim() === '',
+    );
+    const neutrofilosProvided = neutrofilosPct.trim() !== '' || neutrofilosAbs.trim() !== '';
 
-    const hasEmpty = Object.values(fields).some(v => v.trim() === '');
-    if (hasEmpty) {
-      Alert.alert('Campos obrigatórios', 'Preencha todos os campos antes de interpretar.');
+    if (requiredEmpty || !neutrofilosProvided) {
+      Alert.alert(
+        'Campos obrigatórios',
+        'Preencha: Hemoglobina, Hematócrito, VCM, Leucócitos, Neutrófilos (% ou absoluto) e Linfócitos.',
+      );
       return;
     }
 
+    const opt = (v: string) => (v.trim() !== '' ? parseFloat(v) : undefined);
+
     const input: HemogramaInput = {
       sex,
-      hemacias: parseFloat(hemacias),
       hemoglobina: parseFloat(hemoglobina),
       hematocrito: parseFloat(hematocrito),
       vcm: parseFloat(vcm),
-      hcm: parseFloat(hcm),
-      chcm: parseFloat(chcm),
-      rdw: parseFloat(rdw),
       leucocitos: parseFloat(leucocitos),
-      neutrofilosPct: parseFloat(neutrofilosPct),
-      neutrofilosAbs: parseFloat(neutrofilosAbs),
       linfocitosPct: parseFloat(linfocitosPct),
-      monocitosPct: parseFloat(monocitosPct),
-      eosinofilosPct: parseFloat(eosinofilosPct),
-      basofilosPct: parseFloat(basofilosPct),
-      plaquetas: parseFloat(plaquetas),
-      vpm: parseFloat(vpm),
+      hemacias: opt(hemacias),
+      hcm: opt(hcm),
+      chcm: opt(chcm),
+      rdw: opt(rdw),
+      neutrofilosPct: opt(neutrofilosPct),
+      neutrofilosAbs: opt(neutrofilosAbs),
+      monocitosPct: opt(monocitosPct),
+      eosinofilosPct: opt(eosinofilosPct),
+      basofilosPct: opt(basofilosPct),
+      plaquetas: opt(plaquetas),
+      vpm: opt(vpm),
     };
 
     setLoading(true);

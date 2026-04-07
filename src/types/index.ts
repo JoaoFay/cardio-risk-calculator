@@ -26,25 +26,28 @@ export interface RiskResult {
 
 export interface HemogramaInput {
   sex: Sex;
-  // Eritrograma
-  hemacias: number;        // T/L
+  // Eritrograma — obrigatorios
   hemoglobina: number;     // g/dL
   hematocrito: number;     // %
   vcm: number;             // fL
-  hcm: number;             // pg
-  chcm: number;            // g/dL
-  rdw: number;             // %
-  // Leucograma
+  // Eritrograma — opcionais
+  hemacias?: number;       // T/L
+  hcm?: number;            // pg
+  chcm?: number;           // g/dL
+  rdw?: number;            // %
+  // Leucograma — obrigatorios
   leucocitos: number;      // /mm³
-  neutrofilosPct: number;  // %
-  neutrofilosAbs: number;  // /mm³
   linfocitosPct: number;   // %
-  monocitosPct: number;    // %
-  eosinofilosPct: number;  // %
-  basofilosPct: number;    // %
-  // Plaquetas
-  plaquetas: number;       // /mm³
-  vpm: number;             // fL
+  // Leucograma — ao menos um obrigatorio
+  neutrofilosPct?: number; // %
+  neutrofilosAbs?: number; // /mm³
+  // Leucograma — opcionais
+  monocitosPct?: number;   // %
+  eosinofilosPct?: number; // %
+  basofilosPct?: number;   // %
+  // Plaquetas — opcionais
+  plaquetas?: number;      // /mm³
+  vpm?: number;            // fL
 }
 
 export interface HemogramaResult {
