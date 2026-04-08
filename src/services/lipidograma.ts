@@ -1,4 +1,5 @@
 import { LipidogramaInput, LipidogramaResult, SavedExam } from '../types';
+import * as Sentry from '@sentry/react-native';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
@@ -16,6 +17,9 @@ export async function getLipidogramaInterpretation(
   });
 
   if (!response.ok) {
+    if (response.status === 429) {
+      throw new Error('Você atingiu o limite de análises por hora. Aguarde alguns minutos e tente novamente.');
+    }
     let errorMsg = 'Erro ao contactar a API de IA';
     try {
       const error = await response.json();
@@ -23,7 +27,9 @@ export async function getLipidogramaInterpretation(
     } catch {
       // response body is not JSON — use default message
     }
-    throw new Error(errorMsg);
+    const err = new Error(errorMsg);
+    Sentry.captureException(err, { extra: { status: response.status, endpoint: '/api/lipidograma' } });
+    throw err;
   }
 
   const data = await response.json();

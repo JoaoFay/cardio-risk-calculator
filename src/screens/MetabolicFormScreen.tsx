@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import { MetabolicInput, MetabolicResult, GlicemiaCategory } from '../types';
 import { getMetabolicoInterpretation } from '../services/metabolico';
 import { getLastExamByType } from '../storage/examStorage';
@@ -18,9 +19,10 @@ interface FieldProps {
   onChange: (v: string) => void;
   placeholder: string;
   required?: boolean;
+  error?: string;
 }
 
-function Field({ label, value, onChange, placeholder, required }: FieldProps) {
+function Field({ label, value, onChange, placeholder, required, error }: FieldProps) {
   return (
     <>
       <Text style={styles.label}>
@@ -28,13 +30,15 @@ function Field({ label, value, onChange, placeholder, required }: FieldProps) {
         {required && <Text style={styles.required}> *</Text>}
       </Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, error ? styles.inputError : null]}
         keyboardType="numeric"
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
         placeholderTextColor="#aaa"
+        accessibilityLabel={label}
       />
+      {error ? <Text style={styles.fieldError}>{error}</Text> : null}
     </>
   );
 }
@@ -63,13 +67,45 @@ function worstCategory(a: GlicemiaCategory, b?: GlicemiaCategory): GlicemiaCateg
   return CATEGORY_ORDER.indexOf(a) >= CATEGORY_ORDER.indexOf(b) ? a : b;
 }
 
+const LIMITS = {
+  glicemiaJejum: { min: 30,  max: 600, label: '30–600 mg/dL' },
+  hbA1c:         { min: 3,   max: 20,  label: '3–20%' },
+  insulinaJejum: { min: 0,   max: 300, label: '0–300 μUI/mL' },
+};
+
+function outOfRange(value: number, min: number, max: number) {
+  return !isNaN(value) && value !== 0 && (value < min || value > max);
+}
+
 export default function MetabolicFormScreen({ onResult, onBack }: Props) {
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [glicemiaJejum, setGlicemiaJejum] = useState('');
   const [glicemiaPosP, setGlicemiaPosP] = useState('');
   const [hbA1c, setHbA1c] = useState('');
   const [insulinaJejum, setInsulinaJejum] = useState('');
+
+  function clearError(field: string) {
+    setErrors(e => ({ ...e, [field]: '' }));
+  }
+
+  function validate(): boolean {
+    const newErrors: Record<string, string> = {};
+    const gjN = parseFloat(glicemiaJejum);
+    const hbN = parseFloat(hbA1c);
+    const insN = parseFloat(insulinaJejum);
+
+    if (outOfRange(gjN, LIMITS.glicemiaJejum.min, LIMITS.glicemiaJejum.max))
+      newErrors.glicemiaJejum = `Valor fora do intervalo esperado (${LIMITS.glicemiaJejum.label})`;
+    if (hbA1c.trim() !== '' && outOfRange(hbN, LIMITS.hbA1c.min, LIMITS.hbA1c.max))
+      newErrors.hbA1c = `Valor fora do intervalo esperado (${LIMITS.hbA1c.label})`;
+    if (insulinaJejum.trim() !== '' && outOfRange(insN, LIMITS.insulinaJejum.min, LIMITS.insulinaJejum.max))
+      newErrors.insulinaJejum = `Valor fora do intervalo esperado (${LIMITS.insulinaJejum.label})`;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
 
   async function handleSubmit() {
     const gjN = parseFloat(glicemiaJejum);
@@ -81,6 +117,17 @@ export default function MetabolicFormScreen({ onResult, onBack }: Props) {
 
     if (gjN <= 0) {
       Alert.alert('Valor inválido', 'Glicemia deve ser maior que zero.');
+      return;
+    }
+
+    if (!validate()) return;
+
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      Alert.alert(
+        'Sem conexão',
+        'A análise por IA requer conexão com a internet. Seus dados foram preservados — tente novamente quando estiver conectado.'
+      );
       return;
     }
 
@@ -117,7 +164,7 @@ export default function MetabolicFormScreen({ onResult, onBack }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
+      <TouchableOpacity onPress={onBack} style={styles.backButton} accessibilityLabel="Voltar" accessibilityRole="button">
         <Text style={styles.backText}>‹ Voltar</Text>
       </TouchableOpacity>
 
@@ -135,9 +182,10 @@ export default function MetabolicFormScreen({ onResult, onBack }: Props) {
       <Field
         label="Glicemia em Jejum (mg/dL)"
         value={glicemiaJejum}
-        onChange={setGlicemiaJejum}
+        onChange={v => { setGlicemiaJejum(v); clearError('glicemiaJejum'); }}
         placeholder="Ex: 95 (ref. < 100 normal)"
         required
+        error={errors.glicemiaJejum}
       />
       <Field
         label="Glicemia Pós-Prandial 2h (mg/dL)"
@@ -148,14 +196,16 @@ export default function MetabolicFormScreen({ onResult, onBack }: Props) {
       <Field
         label="HbA1c — Hemoglobina Glicada (%)"
         value={hbA1c}
-        onChange={setHbA1c}
+        onChange={v => { setHbA1c(v); clearError('hbA1c'); }}
         placeholder="Ex: 5.5 (ref. < 5,7% normal) — opcional"
+        error={errors.hbA1c}
       />
       <Field
         label="Insulina em Jejum (μUI/mL)"
         value={insulinaJejum}
-        onChange={setInsulinaJejum}
+        onChange={v => { setInsulinaJejum(v); clearError('insulinaJejum'); }}
         placeholder="Ex: 8.0 (ref. 2–25) — opcional"
+        error={errors.insulinaJejum}
       />
 
       <View style={styles.indicesInfo}>
@@ -168,6 +218,8 @@ export default function MetabolicFormScreen({ onResult, onBack }: Props) {
         style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleSubmit}
         disabled={loading}
+        accessibilityLabel="Interpretar perfil metabólico"
+        accessibilityRole="button"
       >
         <Text style={styles.buttonText}>{loading ? 'Interpretando...' : 'Interpretar Perfil Metabólico'}</Text>
       </TouchableOpacity>
@@ -192,6 +244,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  inputError: { borderColor: '#c0392b' },
+  fieldError: { fontSize: 12, color: '#c0392b', marginTop: 4 },
   button: {
     marginTop: 32,
     backgroundColor: '#16a085',

@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import { HemogramaInput, HemogramaResult, Sex } from '../types';
 import { getHemogramaInterpretation } from '../services/hemograma';
 import { getLastExamByType } from '../storage/examStorage';
@@ -18,9 +19,10 @@ interface FieldProps {
   onChange: (v: string) => void;
   placeholder: string;
   required?: boolean;
+  error?: string;
 }
 
-function Field({ label, value, onChange, placeholder, required }: FieldProps) {
+function Field({ label, value, onChange, placeholder, required, error }: FieldProps) {
   return (
     <>
       <Text style={styles.label}>
@@ -28,13 +30,15 @@ function Field({ label, value, onChange, placeholder, required }: FieldProps) {
         {required && <Text style={styles.required}> *</Text>}
       </Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, error ? styles.inputError : null]}
         keyboardType="numeric"
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
         placeholderTextColor="#aaa"
+        accessibilityLabel={label}
       />
+      {error ? <Text style={styles.fieldError}>{error}</Text> : null}
     </>
   );
 }
@@ -44,9 +48,23 @@ interface Props {
   onBack: () => void;
 }
 
+const LIMITS = {
+  hemoglobina:   { min: 1,   max: 25,     label: '1–25 g/dL' },
+  hematocrito:   { min: 5,   max: 75,     label: '5–75%' },
+  vcm:           { min: 40,  max: 150,    label: '40–150 fL' },
+  leucocitos:    { min: 500, max: 100000, label: '500–100.000 /mm³' },
+  neutrofilosPct:{ min: 0,   max: 100,    label: '0–100%' },
+  linfocitosPct: { min: 0,   max: 100,    label: '0–100%' },
+};
+
+function outOfRange(value: number, min: number, max: number) {
+  return !isNaN(value) && value !== 0 && (value < min || value > max);
+}
+
 export default function HemogramaFormScreen({ onResult, onBack }: Props) {
   const [sex, setSex] = useState<Sex>('male');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Eritrograma
   const [hemacias, setHemacias] = useState('');
@@ -70,6 +88,36 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
   const [plaquetas, setPlaquetas] = useState('');
   const [vpm, setVpm] = useState('');
 
+  function clearError(field: string) {
+    setErrors(e => ({ ...e, [field]: '' }));
+  }
+
+  function validate(): boolean {
+    const newErrors: Record<string, string> = {};
+    const hgb = parseFloat(hemoglobina);
+    const hct = parseFloat(hematocrito);
+    const vcmN = parseFloat(vcm);
+    const leuN = parseFloat(leucocitos);
+    const neutPct = parseFloat(neutrofilosPct);
+    const linfPct = parseFloat(linfocitosPct);
+
+    if (outOfRange(hgb, LIMITS.hemoglobina.min, LIMITS.hemoglobina.max))
+      newErrors.hemoglobina = `Valor fora do intervalo esperado (${LIMITS.hemoglobina.label})`;
+    if (outOfRange(hct, LIMITS.hematocrito.min, LIMITS.hematocrito.max))
+      newErrors.hematocrito = `Valor fora do intervalo esperado (${LIMITS.hematocrito.label})`;
+    if (outOfRange(vcmN, LIMITS.vcm.min, LIMITS.vcm.max))
+      newErrors.vcm = `Valor fora do intervalo esperado (${LIMITS.vcm.label})`;
+    if (outOfRange(leuN, LIMITS.leucocitos.min, LIMITS.leucocitos.max))
+      newErrors.leucocitos = `Valor fora do intervalo esperado (${LIMITS.leucocitos.label})`;
+    if (neutrofilosPct.trim() !== '' && outOfRange(neutPct, LIMITS.neutrofilosPct.min, LIMITS.neutrofilosPct.max))
+      newErrors.neutrofilosPct = `Valor fora do intervalo esperado (${LIMITS.neutrofilosPct.label})`;
+    if (outOfRange(linfPct, LIMITS.linfocitosPct.min, LIMITS.linfocitosPct.max))
+      newErrors.linfocitosPct = `Valor fora do intervalo esperado (${LIMITS.linfocitosPct.label})`;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
   async function handleSubmit() {
     const requiredEmpty = [hemoglobina, hematocrito, vcm, leucocitos, linfocitosPct].some(
       v => v.trim() === '',
@@ -80,6 +128,17 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
       Alert.alert(
         'Campos obrigatórios',
         'Preencha: Hemoglobina, Hematócrito, VCM, Leucócitos, Neutrófilos (% ou absoluto) e Linfócitos.',
+      );
+      return;
+    }
+
+    if (!validate()) return;
+
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      Alert.alert(
+        'Sem conexão',
+        'A análise por IA requer conexão com a internet. Seus dados foram preservados — tente novamente quando estiver conectado.'
       );
       return;
     }
@@ -121,7 +180,7 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
+      <TouchableOpacity onPress={onBack} style={styles.backButton} accessibilityLabel="Voltar" accessibilityRole="button">
         <Text style={styles.backText}>‹ Voltar</Text>
       </TouchableOpacity>
 
@@ -141,6 +200,8 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
         <TouchableOpacity
           style={[styles.sexButton, sex === 'male' && styles.sexButtonActive]}
           onPress={() => setSex('male')}
+          accessibilityLabel="Sexo masculino"
+          accessibilityRole="button"
         >
           <Text style={[styles.sexButtonText, sex === 'male' && styles.sexButtonTextActive]}>
             Masculino
@@ -149,6 +210,8 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
         <TouchableOpacity
           style={[styles.sexButton, sex === 'female' && styles.sexButtonActive]}
           onPress={() => setSex('female')}
+          accessibilityLabel="Sexo feminino"
+          accessibilityRole="button"
         >
           <Text style={[styles.sexButtonText, sex === 'female' && styles.sexButtonTextActive]}>
             Feminino
@@ -163,11 +226,17 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
 
       <Field label="Hemácias (T/L)" value={hemacias} onChange={setHemacias}
         placeholder={sex === 'male' ? 'Ref: 4,5 – 6,0' : 'Ref: 4,0 – 5,5'} />
-      <Field label="Hemoglobina (g/dL)" value={hemoglobina} onChange={setHemoglobina}
-        placeholder={sex === 'male' ? 'Ref: 13,5 – 17,5' : 'Ref: 12,0 – 16,0'} required />
-      <Field label="Hematócrito (%)" value={hematocrito} onChange={setHematocrito}
-        placeholder={sex === 'male' ? 'Ref: 41 – 53' : 'Ref: 36 – 46'} required />
-      <Field label="VCM (fL)" value={vcm} onChange={setVcm} placeholder="Ref: 80 – 100" required />
+      <Field label="Hemoglobina (g/dL)" value={hemoglobina}
+        onChange={v => { setHemoglobina(v); clearError('hemoglobina'); }}
+        placeholder={sex === 'male' ? 'Ref: 13,5 – 17,5' : 'Ref: 12,0 – 16,0'}
+        required error={errors.hemoglobina} />
+      <Field label="Hematócrito (%)" value={hematocrito}
+        onChange={v => { setHematocrito(v); clearError('hematocrito'); }}
+        placeholder={sex === 'male' ? 'Ref: 41 – 53' : 'Ref: 36 – 46'}
+        required error={errors.hematocrito} />
+      <Field label="VCM (fL)" value={vcm}
+        onChange={v => { setVcm(v); clearError('vcm'); }}
+        placeholder="Ref: 80 – 100" required error={errors.vcm} />
       <Field label="HCM (pg)" value={hcm} onChange={setHcm} placeholder="Ref: 27 – 33" />
       <Field label="CHCM (g/dL)" value={chcm} onChange={setChcm} placeholder="Ref: 32 – 36" />
       <Field label="RDW (%)" value={rdw} onChange={setRdw} placeholder="Ref: 11,5 – 14,5" />
@@ -177,15 +246,18 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
         <Text style={styles.sectionTitle}>Leucograma — Série Branca</Text>
       </View>
 
-      <Field label="Leucócitos totais (/mm³)" value={leucocitos} onChange={setLeucocitos}
-        placeholder="Ref: 4.000 – 10.000" required />
-      <Field label="Neutrófilos (%) *" value={neutrofilosPct} onChange={setNeutrofilosPct}
-        placeholder="Ref: 45 – 75" />
+      <Field label="Leucócitos totais (/mm³)" value={leucocitos}
+        onChange={v => { setLeucocitos(v); clearError('leucocitos'); }}
+        placeholder="Ref: 4.000 – 10.000" required error={errors.leucocitos} />
+      <Field label="Neutrófilos (%) *" value={neutrofilosPct}
+        onChange={v => { setNeutrofilosPct(v); clearError('neutrofilosPct'); }}
+        placeholder="Ref: 45 – 75" error={errors.neutrofilosPct} />
       <Field label="Neutrófilos absolutos (/mm³) *" value={neutrofilosAbs} onChange={setNeutrofilosAbs}
         placeholder="Ref: 1.800 – 7.500" />
       <Text style={styles.fieldNote}>* Preencha ao menos um dos dois campos de Neutrófilos</Text>
-      <Field label="Linfócitos (%)" value={linfocitosPct} onChange={setLinfocitosPct}
-        placeholder="Ref: 20 – 40" required />
+      <Field label="Linfócitos (%)" value={linfocitosPct}
+        onChange={v => { setLinfocitosPct(v); clearError('linfocitosPct'); }}
+        placeholder="Ref: 20 – 40" required error={errors.linfocitosPct} />
       <Field label="Monócitos (%)" value={monocitosPct} onChange={setMonocitosPct}
         placeholder="Ref: 2 – 8" />
       <Field label="Eosinófilos (%)" value={eosinofilosPct} onChange={setEosinofilosPct}
@@ -207,6 +279,8 @@ export default function HemogramaFormScreen({ onResult, onBack }: Props) {
         style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleSubmit}
         disabled={loading}
+        accessibilityLabel="Interpretar hemograma"
+        accessibilityRole="button"
       >
         <Text style={styles.buttonText}>{loading ? 'Interpretando...' : 'Interpretar Hemograma'}</Text>
       </TouchableOpacity>
@@ -231,6 +305,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  inputError: { borderColor: '#c0392b' },
+  fieldError: { fontSize: 12, color: '#c0392b', marginTop: 4 },
   sexRow: { flexDirection: 'row', gap: 12 },
   sexButton: {
     flex: 1,

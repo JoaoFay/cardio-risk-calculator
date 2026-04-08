@@ -1,5 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
+import * as SplashScreen from 'expo-splash-screen';
+import * as Sentry from '@sentry/react-native';
 import HomeScreen from './src/screens/HomeScreen';
 import FormScreen from './src/screens/FormScreen';
 import ResultScreen from './src/screens/ResultScreen';
@@ -12,6 +21,10 @@ import MetabolicResultScreen from './src/screens/MetabolicResultScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
 import { RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, SavedExam } from './src/types';
+
+Sentry.init({ dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || '' });
+
+SplashScreen.preventAutoHideAsync();
 
 type AppScreen =
   | { screen: 'home' }
@@ -28,6 +41,21 @@ type AppScreen =
 
 export default function App() {
   const [nav, setNav] = useState<AppScreen>({ screen: 'home' });
+
+  const [fontsLoaded, fontError] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <SafeAreaView style={styles.container}>

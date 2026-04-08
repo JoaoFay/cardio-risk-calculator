@@ -12,7 +12,7 @@ interface Props {
 export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectHistory }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>MedCalc</Text>
+      <Text style={styles.title}>LabIA</Text>
       <Text style={styles.subtitle}>Selecione um módulo para começar</Text>
 
       <View style={styles.disclaimerBox}>
@@ -21,7 +21,12 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
         </Text>
       </View>
 
-      <TouchableOpacity style={[styles.card, styles.cardCardio]} onPress={onSelectCardio}>
+      <TouchableOpacity
+        style={[styles.card, styles.cardCardio]}
+        onPress={onSelectCardio}
+        accessibilityLabel="Abrir módulo Risco Cardiovascular"
+        accessibilityRole="button"
+      >
         <Text style={styles.cardIcon}>❤️</Text>
         <View style={styles.cardTextContainer}>
           <Text style={styles.cardTitle}>Risco Cardiovascular</Text>
@@ -32,7 +37,12 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
         <Text style={styles.cardArrow}>›</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.card, styles.cardHemograma]} onPress={onSelectHemograma}>
+      <TouchableOpacity
+        style={[styles.card, styles.cardHemograma]}
+        onPress={onSelectHemograma}
+        accessibilityLabel="Abrir módulo Hemograma Completo"
+        accessibilityRole="button"
+      >
         <Text style={styles.cardIcon}>🩸</Text>
         <View style={styles.cardTextContainer}>
           <Text style={[styles.cardTitle, styles.cardTitleHemograma]}>Hemograma Completo</Text>
@@ -43,7 +53,12 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
         <Text style={[styles.cardArrow, styles.cardArrowHemograma]}>›</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.card, styles.cardLipid]} onPress={onSelectLipidograma}>
+      <TouchableOpacity
+        style={[styles.card, styles.cardLipid]}
+        onPress={onSelectLipidograma}
+        accessibilityLabel="Abrir módulo Lipidograma"
+        accessibilityRole="button"
+      >
         <Text style={styles.cardIcon}>🧬</Text>
         <View style={styles.cardTextContainer}>
           <Text style={[styles.cardTitle, styles.cardTitleLipid]}>Lipidograma</Text>
@@ -54,7 +69,12 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
         <Text style={[styles.cardArrow, styles.cardArrowLipid]}>›</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.card, styles.cardMetabolico]} onPress={onSelectMetabolico}>
+      <TouchableOpacity
+        style={[styles.card, styles.cardMetabolico]}
+        onPress={onSelectMetabolico}
+        accessibilityLabel="Abrir módulo Perfil Metabólico"
+        accessibilityRole="button"
+      >
         <Text style={styles.cardIcon}>🩺</Text>
         <View style={styles.cardTextContainer}>
           <Text style={[styles.cardTitle, styles.cardTitleMetabolico]}>Perfil Metabólico</Text>
@@ -65,7 +85,12 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
         <Text style={[styles.cardArrow, styles.cardArrowMetabolico]}>›</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.card, styles.cardHistory]} onPress={onSelectHistory}>
+      <TouchableOpacity
+        style={[styles.card, styles.cardHistory]}
+        onPress={onSelectHistory}
+        accessibilityLabel="Abrir Meu Histórico de exames"
+        accessibilityRole="button"
+      >
         <Text style={styles.cardIcon}>📋</Text>
         <View style={styles.cardTextContainer}>
           <Text style={[styles.cardTitle, styles.cardTitleHistory]}>Meu Histórico</Text>
@@ -82,8 +107,8 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#2c3e50', marginBottom: 4 },
-  subtitle: { fontSize: 15, color: '#666', marginBottom: 24 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#2c3e50', marginBottom: 4, fontFamily: 'Inter_700Bold' },
+  subtitle: { fontSize: 15, color: '#666', marginBottom: 24, fontFamily: 'Inter_400Regular' },
   disclaimerBox: {
     backgroundColor: '#fff8e1',
     borderLeftWidth: 4,
@@ -92,7 +117,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 32,
   },
-  disclaimerText: { fontSize: 13, color: '#7d5a00' },
+  disclaimerText: { fontSize: 13, color: '#7d5a00', fontFamily: 'Inter_400Regular' },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -114,9 +139,9 @@ const styles = StyleSheet.create({
   cardHistory: { borderLeftColor: '#7f8c8d' },
   cardIcon: { fontSize: 32, marginRight: 16 },
   cardTextContainer: { flex: 1 },
-  cardTitle: { fontSize: 17, fontWeight: 'bold', color: '#c0392b', marginBottom: 4 },
+  cardTitle: { fontSize: 17, fontWeight: 'bold', color: '#c0392b', marginBottom: 4, fontFamily: 'Inter_600SemiBold' },
   cardTitleHemograma: { color: '#2980b9' },
-  cardDescription: { fontSize: 13, color: '#555', lineHeight: 18 },
+  cardDescription: { fontSize: 13, color: '#555', lineHeight: 18, fontFamily: 'Inter_400Regular' },
   cardArrow: { fontSize: 28, color: '#c0392b', marginLeft: 8 },
   cardArrowHemograma: { color: '#2980b9' },
   cardTitleLipid: { color: '#8e44ad' },

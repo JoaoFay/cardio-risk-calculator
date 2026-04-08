@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import { LipidogramaInput, LipidogramaResult } from '../types';
 import { getLipidogramaInterpretation } from '../services/lipidograma';
 import { getLastExamByType } from '../storage/examStorage';
@@ -18,9 +19,10 @@ interface FieldProps {
   onChange: (v: string) => void;
   placeholder: string;
   required?: boolean;
+  error?: string;
 }
 
-function Field({ label, value, onChange, placeholder, required }: FieldProps) {
+function Field({ label, value, onChange, placeholder, required, error }: FieldProps) {
   return (
     <>
       <Text style={styles.label}>
@@ -28,13 +30,15 @@ function Field({ label, value, onChange, placeholder, required }: FieldProps) {
         {required && <Text style={styles.required}> *</Text>}
       </Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, error ? styles.inputError : null]}
         keyboardType="numeric"
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
         placeholderTextColor="#aaa"
+        accessibilityLabel={label}
       />
+      {error ? <Text style={styles.fieldError}>{error}</Text> : null}
     </>
   );
 }
@@ -44,14 +48,50 @@ interface Props {
   onBack: () => void;
 }
 
+const LIMITS = {
+  totalCholesterol: { min: 50,  max: 500,  label: '50–500 mg/dL' },
+  ldl:              { min: 10,  max: 400,  label: '10–400 mg/dL' },
+  hdl:              { min: 10,  max: 200,  label: '10–200 mg/dL' },
+  triglycerides:    { min: 10,  max: 3000, label: '10–3.000 mg/dL' },
+};
+
+function outOfRange(value: number, min: number, max: number) {
+  return !isNaN(value) && value !== 0 && (value < min || value > max);
+}
+
 export default function LipidogramaFormScreen({ onResult, onBack }: Props) {
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [totalCholesterol, setTotalCholesterol] = useState('');
   const [ldl, setLdl] = useState('');
   const [hdl, setHdl] = useState('');
   const [triglycerides, setTriglycerides] = useState('');
   const [vldl, setVldl] = useState('');
+
+  function clearError(field: string) {
+    setErrors(e => ({ ...e, [field]: '' }));
+  }
+
+  function validate(): boolean {
+    const newErrors: Record<string, string> = {};
+    const tcN = parseFloat(totalCholesterol);
+    const ldlN = parseFloat(ldl);
+    const hdlN = parseFloat(hdl);
+    const tgN = parseFloat(triglycerides);
+
+    if (outOfRange(tcN, LIMITS.totalCholesterol.min, LIMITS.totalCholesterol.max))
+      newErrors.totalCholesterol = `Valor fora do intervalo esperado (${LIMITS.totalCholesterol.label})`;
+    if (outOfRange(ldlN, LIMITS.ldl.min, LIMITS.ldl.max))
+      newErrors.ldl = `Valor fora do intervalo esperado (${LIMITS.ldl.label})`;
+    if (outOfRange(hdlN, LIMITS.hdl.min, LIMITS.hdl.max))
+      newErrors.hdl = `Valor fora do intervalo esperado (${LIMITS.hdl.label})`;
+    if (outOfRange(tgN, LIMITS.triglycerides.min, LIMITS.triglycerides.max))
+      newErrors.triglycerides = `Valor fora do intervalo esperado (${LIMITS.triglycerides.label})`;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
 
   async function handleSubmit() {
     const tcN = parseFloat(totalCholesterol);
@@ -69,6 +109,17 @@ export default function LipidogramaFormScreen({ onResult, onBack }: Props) {
 
     if (hdlN <= 0) {
       Alert.alert('Valor inválido', 'HDL deve ser maior que zero para calcular os índices.');
+      return;
+    }
+
+    if (!validate()) return;
+
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      Alert.alert(
+        'Sem conexão',
+        'A análise por IA requer conexão com a internet. Seus dados foram preservados — tente novamente quando estiver conectado.'
+      );
       return;
     }
 
@@ -101,7 +152,7 @@ export default function LipidogramaFormScreen({ onResult, onBack }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
+      <TouchableOpacity onPress={onBack} style={styles.backButton} accessibilityLabel="Voltar" accessibilityRole="button">
         <Text style={styles.backText}>‹ Voltar</Text>
       </TouchableOpacity>
 
@@ -116,14 +167,18 @@ export default function LipidogramaFormScreen({ onResult, onBack }: Props) {
 
       <Text style={styles.requiredLegend}><Text style={styles.required}>*</Text> Campo obrigatório</Text>
 
-      <Field label="Colesterol Total (mg/dL)" value={totalCholesterol} onChange={setTotalCholesterol}
-        placeholder="Ex: 210 (ref. < 200 desejável)" required />
-      <Field label="LDL (mg/dL)" value={ldl} onChange={setLdl}
-        placeholder="Ex: 130 (ref. < 130 desejável)" required />
-      <Field label="HDL (mg/dL)" value={hdl} onChange={setHdl}
-        placeholder="Ex: 50 (ref. > 60 ótimo)" required />
-      <Field label="Triglicerídeos (mg/dL)" value={triglycerides} onChange={setTriglycerides}
-        placeholder="Ex: 150 (ref. < 150 normal)" required />
+      <Field label="Colesterol Total (mg/dL)" value={totalCholesterol}
+        onChange={v => { setTotalCholesterol(v); clearError('totalCholesterol'); }}
+        placeholder="Ex: 210 (ref. < 200 desejável)" required error={errors.totalCholesterol} />
+      <Field label="LDL (mg/dL)" value={ldl}
+        onChange={v => { setLdl(v); clearError('ldl'); }}
+        placeholder="Ex: 130 (ref. < 130 desejável)" required error={errors.ldl} />
+      <Field label="HDL (mg/dL)" value={hdl}
+        onChange={v => { setHdl(v); clearError('hdl'); }}
+        placeholder="Ex: 50 (ref. > 60 ótimo)" required error={errors.hdl} />
+      <Field label="Triglicerídeos (mg/dL)" value={triglycerides}
+        onChange={v => { setTriglycerides(v); clearError('triglycerides'); }}
+        placeholder="Ex: 150 (ref. < 150 normal)" required error={errors.triglycerides} />
       <Field label="VLDL (mg/dL)" value={vldl} onChange={setVldl}
         placeholder="Ex: 30 (ref. < 40) — opcional" />
 
@@ -137,6 +192,8 @@ export default function LipidogramaFormScreen({ onResult, onBack }: Props) {
         style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleSubmit}
         disabled={loading}
+        accessibilityLabel="Interpretar lipidograma"
+        accessibilityRole="button"
       >
         <Text style={styles.buttonText}>{loading ? 'Interpretando...' : 'Interpretar Lipidograma'}</Text>
       </TouchableOpacity>
@@ -161,6 +218,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  inputError: { borderColor: '#c0392b' },
+  fieldError: { fontSize: 12, color: '#c0392b', marginTop: 4 },
   button: {
     marginTop: 32,
     backgroundColor: '#8e44ad',

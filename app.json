@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "Risco Cardiovascular",
-    "slug": "cardio-risk-calculator",
+    "name": "LabIA",
+    "slug": "labia",
     "version": "1.0.0",
+    "scheme": "labia",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -14,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.drjuaum.cardiorisk"
+      "bundleIdentifier": "com.drjuaum.labia"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.drjuaum.cardiorisk"
+      "package": "com.drjuaum.labia"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,6 +33,10 @@
       "eas": {
         "projectId": "8d010114-50a6-4e90-bcab-4b60fbec9fbc"
       }
-    }
+    },
+    "plugins": [
+      "expo-font",
+      "@sentry/react-native"
+    ]
   }
 }
