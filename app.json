@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "LabIA",
-    "slug": "labia",
+    "slug": "cardio-risk-calculator",
     "version": "1.0.0",
     "scheme": "labia",
     "orientation": "portrait",
@@ -39,7 +39,14 @@
     },
     "plugins": [
       "expo-font",
-      "@sentry/react-native"
-    ]
+      [
+        "@sentry/react-native",
+        {
+          "organization": "cfneves",
+          "project": "labia"
+        }
+      ]
+    ],
+    "owner": "joaofay"
   }
 }
