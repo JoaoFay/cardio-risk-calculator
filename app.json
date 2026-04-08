@@ -8,6 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "privacyPolicyUrl": "https://PLACEHOLDER_URL",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -15,7 +16,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.drjuaum.labia"
+      "bundleIdentifier": "com.drjuaum.labia",
+      "privacyPolicyUrl": "https://PLACEHOLDER_URL"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,6 +32,7 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
+      "privacyPolicyUrl": "https://PLACEHOLDER_URL",
       "eas": {
         "projectId": "8d010114-50a6-4e90-bcab-4b60fbec9fbc"
       }

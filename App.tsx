@@ -9,6 +9,8 @@ import {
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Sentry from '@sentry/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import FormScreen from './src/screens/FormScreen';
 import ResultScreen from './src/screens/ResultScreen';
@@ -27,6 +29,7 @@ Sentry.init({ dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || '' });
 SplashScreen.preventAutoHideAsync();
 
 type AppScreen =
+  | { screen: 'onboarding' }
   | { screen: 'home' }
   | { screen: 'cardio-form' }
   | { screen: 'cardio-result'; result: RiskResult; input: PatientInput }
@@ -41,6 +44,7 @@ type AppScreen =
 
 export default function App() {
   const [nav, setNav] = useState<AppScreen>({ screen: 'home' });
+  const [appReady, setAppReady] = useState(false);
 
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -50,16 +54,29 @@ export default function App() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    AsyncStorage.getItem('labia:onboarding_completed').then(value => {
+      if (value !== 'true') {
+        setNav({ screen: 'onboarding' });
+      }
+      setAppReady(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if ((fontsLoaded || fontError) && appReady) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, appReady]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if ((!fontsLoaded && !fontError) || !appReady) return null;
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+
+      {nav.screen === 'onboarding' && (
+        <OnboardingScreen onComplete={() => setNav({ screen: 'home' })} />
+      )}
 
       {nav.screen === 'home' && (
         <HomeScreen

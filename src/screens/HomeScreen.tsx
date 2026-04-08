@@ -100,6 +100,10 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
         </View>
         <Text style={[styles.cardArrow, styles.cardArrowHistory]}>›</Text>
       </TouchableOpacity>
+
+      <Text style={styles.footerDisclaimer}>
+        LabIA é um app educativo. Não substitui consulta médica.
+      </Text>
     </ScrollView>
   );
 }
@@ -150,4 +154,12 @@ const styles = StyleSheet.create({
   cardArrowMetabolico: { color: '#16a085' },
   cardTitleHistory: { color: '#7f8c8d' },
   cardArrowHistory: { color: '#7f8c8d' },
+  footerDisclaimer: {
+    marginTop: 24,
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#aaa',
+    fontFamily: 'Inter_400Regular',
+    paddingHorizontal: 16,
+  },
 });
