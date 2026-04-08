@@ -39,6 +39,13 @@ const MODULE_CONFIG = {
     chartLabel: 'LDL',
     chartUnit: 'mg/dL',
   },
+  metabolico: {
+    label: 'Perfil Metabólico',
+    color: '#16a085',
+    chartMarker: 'glicemiaJejum' as const,
+    chartLabel: 'Glicemia Jejum',
+    chartUnit: 'mg/dL',
+  },
 };
 
 function formatMarkersSummary(exam: SavedExam): string {
@@ -49,8 +56,13 @@ function formatMarkersSummary(exam: SavedExam): string {
     const parts = [`Hb: ${m.hemoglobina}`, `Ht: ${m.hematocrito}%`, `Leuc: ${m.leucocitos}`];
     if (m.plaquetas) parts.push(`Plaq: ${m.plaquetas}`);
     return parts.join(' · ');
-  } else {
+  } else if (exam.type === 'lipidograma') {
     return `CT: ${m.totalCholesterol} · LDL: ${m.ldl} · HDL: ${m.hdl} · TG: ${m.triglycerides}`;
+  } else {
+    const parts = [`Glicemia: ${m.glicemiaJejum} mg/dL`];
+    if (m.hbA1c != null) parts.push(`HbA1c: ${m.hbA1c}%`);
+    if (m.homaIR != null) parts.push(`HOMA-IR: ${m.homaIR}`);
+    return parts.join(' · ');
   }
 }
 
@@ -89,6 +101,7 @@ export default function HistoryScreen({ onViewDetail, onBack }: Props) {
     cardio: exams.filter(e => e.type === 'cardio'),
     hemograma: exams.filter(e => e.type === 'hemograma'),
     lipidograma: exams.filter(e => e.type === 'lipidograma'),
+    metabolico: exams.filter(e => e.type === 'metabolico'),
   } as const;
 
   const isEmpty = exams.length === 0;

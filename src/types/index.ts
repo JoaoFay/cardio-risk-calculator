@@ -69,7 +69,24 @@ export interface LipidogramaResult {
   aiInterpretation: string;
 }
 
-export type ExamType = 'cardio' | 'hemograma' | 'lipidograma';
+export interface MetabolicInput {
+  glicemiaJejum: number;      // mg/dL
+  glicemiaPosP?: number;      // mg/dL — opcional
+  hbA1c?: number;             // % — opcional
+  insulinaJejum?: number;     // μUI/mL — opcional
+}
+
+export type GlicemiaCategory = 'normal' | 'prediabetes' | 'diabetes';
+
+export interface MetabolicResult {
+  homaIR?: number;
+  glicemiaCategory: GlicemiaCategory;
+  hbA1cCategory?: GlicemiaCategory;
+  overallCategory: GlicemiaCategory;
+  aiInterpretation: string;
+}
+
+export type ExamType = 'cardio' | 'hemograma' | 'lipidograma' | 'metabolico';
 
 export interface SavedExam {
   id: string;              // Date.now().toString()
@@ -78,7 +95,7 @@ export interface SavedExam {
   examDateDisplay: string; // 'DD/MM/YYYY' — para exibição
   labName: string;         // '' se não informado
   savedAt: string;         // ISO timestamp
-  input: PatientInput | HemogramaInput | LipidogramaInput;
-  result: RiskResult | HemogramaResult | LipidogramaResult;
+  input: PatientInput | HemogramaInput | LipidogramaInput | MetabolicInput;
+  result: RiskResult | HemogramaResult | LipidogramaResult | MetabolicResult;
   markers: Record<string, number>;
 }

@@ -7,9 +7,11 @@ import HemogramaFormScreen from './src/screens/HemogramaFormScreen';
 import HemogramaResultScreen from './src/screens/HemogramaResultScreen';
 import LipidogramaFormScreen from './src/screens/LipidogramaFormScreen';
 import LipidogramaResultScreen from './src/screens/LipidogramaResultScreen';
+import MetabolicFormScreen from './src/screens/MetabolicFormScreen';
+import MetabolicResultScreen from './src/screens/MetabolicResultScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
-import { RiskResult, HemogramaResult, LipidogramaResult, PatientInput, HemogramaInput, LipidogramaInput, SavedExam } from './src/types';
+import { RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, SavedExam } from './src/types';
 
 type AppScreen =
   | { screen: 'home' }
@@ -19,6 +21,8 @@ type AppScreen =
   | { screen: 'hemograma-result'; result: HemogramaResult; input: HemogramaInput }
   | { screen: 'lipidograma-form' }
   | { screen: 'lipidograma-result'; result: LipidogramaResult; input: LipidogramaInput }
+  | { screen: 'metabolico-form' }
+  | { screen: 'metabolico-result'; result: MetabolicResult; input: MetabolicInput }
   | { screen: 'history' }
   | { screen: 'history-detail'; exam: SavedExam };
 
@@ -34,6 +38,7 @@ export default function App() {
           onSelectCardio={() => setNav({ screen: 'cardio-form' })}
           onSelectHemograma={() => setNav({ screen: 'hemograma-form' })}
           onSelectLipidograma={() => setNav({ screen: 'lipidograma-form' })}
+          onSelectMetabolico={() => setNav({ screen: 'metabolico-form' })}
           onSelectHistory={() => setNav({ screen: 'history' })}
         />
       )}
@@ -77,6 +82,21 @@ export default function App() {
 
       {nav.screen === 'lipidograma-result' && (
         <LipidogramaResultScreen
+          result={nav.result}
+          input={nav.input}
+          onBack={() => setNav({ screen: 'home' })}
+        />
+      )}
+
+      {nav.screen === 'metabolico-form' && (
+        <MetabolicFormScreen
+          onResult={(result, input) => setNav({ screen: 'metabolico-result', result, input })}
+          onBack={() => setNav({ screen: 'home' })}
+        />
+      )}
+
+      {nav.screen === 'metabolico-result' && (
+        <MetabolicResultScreen
           result={nav.result}
           input={nav.input}
           onBack={() => setNav({ screen: 'home' })}

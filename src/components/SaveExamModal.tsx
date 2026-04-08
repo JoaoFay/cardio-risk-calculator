@@ -13,8 +13,8 @@ import {
 import { saveExam } from '../storage/examStorage';
 import {
   ExamType,
-  PatientInput, HemogramaInput, LipidogramaInput,
-  RiskResult, HemogramaResult, LipidogramaResult,
+  PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput,
+  RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult,
   SavedExam,
 } from '../types';
 
@@ -36,8 +36,8 @@ function displayToISO(display: string): string | null {
 
 function extractMarkers(
   type: ExamType,
-  input: PatientInput | HemogramaInput | LipidogramaInput,
-  result: RiskResult | HemogramaResult | LipidogramaResult,
+  input: PatientInput | HemogramaInput | LipidogramaInput | MetabolicInput,
+  result: RiskResult | HemogramaResult | LipidogramaResult | MetabolicResult,
 ): Record<string, number> {
   if (type === 'cardio') {
     const i = input as PatientInput;
@@ -58,16 +58,22 @@ function extractMarkers(
     };
     if (i.plaquetas != null) markers.plaquetas = i.plaquetas;
     return markers;
-  } else {
+  } else if (type === 'lipidograma') {
     const i = input as LipidogramaInput;
     const r = result as LipidogramaResult;
-    const markers: Record<string, number> = {
+    return {
       totalCholesterol: i.totalCholesterol,
       ldl: i.ldl,
       hdl: i.hdl,
       triglycerides: i.triglycerides,
       castelliI: r.castelliI,
     };
+  } else {
+    const i = input as MetabolicInput;
+    const r = result as MetabolicResult;
+    const markers: Record<string, number> = { glicemiaJejum: i.glicemiaJejum };
+    if (i.hbA1c != null) markers.hbA1c = i.hbA1c;
+    if (r.homaIR != null) markers.homaIR = r.homaIR;
     return markers;
   }
 }
@@ -77,8 +83,8 @@ interface Props {
   onClose: () => void;
   onSaved: (exam: SavedExam) => void;
   type: ExamType;
-  input: PatientInput | HemogramaInput | LipidogramaInput;
-  result: RiskResult | HemogramaResult | LipidogramaResult;
+  input: PatientInput | HemogramaInput | LipidogramaInput | MetabolicInput;
+  result: RiskResult | HemogramaResult | LipidogramaResult | MetabolicResult;
 }
 
 export default function SaveExamModal({ visible, onClose, onSaved, type, input, result }: Props) {
