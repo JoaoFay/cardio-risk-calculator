@@ -12,6 +12,9 @@ import NetInfo from '@react-native-community/netinfo';
 import { MetabolicInput, MetabolicResult, GlicemiaCategory } from '../types';
 import { getMetabolicoInterpretation } from '../services/metabolico';
 import { getLastExamByType } from '../storage/examStorage';
+import { isPremium } from '../storage/premiumStorage';
+import { getTodayCount, incrementUsage } from '../storage/usageStorage';
+import UpgradeModal from '../components/UpgradeModal';
 
 interface FieldProps {
   label: string;
@@ -46,6 +49,7 @@ function Field({ label, value, onChange, placeholder, required, error }: FieldPr
 interface Props {
   onResult: (result: MetabolicResult, input: MetabolicInput) => void;
   onBack: () => void;
+  onGoToPremium: () => void;
 }
 
 function classifyGlicemia(value: number): GlicemiaCategory {
@@ -77,9 +81,10 @@ function outOfRange(value: number, min: number, max: number) {
   return !isNaN(value) && value !== 0 && (value < min || value > max);
 }
 
-export default function MetabolicFormScreen({ onResult, onBack }: Props) {
+export default function MetabolicFormScreen({ onResult, onBack, onGoToPremium }: Props) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const [glicemiaJejum, setGlicemiaJejum] = useState('');
   const [glicemiaPosP, setGlicemiaPosP] = useState('');
@@ -149,10 +154,20 @@ export default function MetabolicFormScreen({ onResult, onBack }: Props) {
 
     const partialResult = { homaIR, glicemiaCategory, hbA1cCategory, overallCategory };
 
+    const premium = await isPremium();
+    if (!premium) {
+      const count = await getTodayCount();
+      if (count >= 3) {
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const previousExam = await getLastExamByType('metabolico');
       const aiInterpretation = await getMetabolicoInterpretation(input, partialResult, previousExam ?? undefined);
+      await incrementUsage();
       onResult({ ...partialResult, aiInterpretation }, input);
     } catch (e: any) {
       Alert.alert('Erro na IA', e.message);
@@ -163,6 +178,13 @@ export default function MetabolicFormScreen({ onResult, onBack }: Props) {
   }
 
   return (
+    <>
+    <UpgradeModal
+      visible={showUpgradeModal}
+      onClose={() => setShowUpgradeModal(false)}
+      onLearnMore={() => { setShowUpgradeModal(false); onGoToPremium(); }}
+      reason="analyses"
+    />
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <TouchableOpacity onPress={onBack} style={styles.backButton} accessibilityLabel="Voltar" accessibilityRole="button">
         <Text style={styles.backText}>‹ Voltar</Text>
@@ -224,6 +246,7 @@ export default function MetabolicFormScreen({ onResult, onBack }: Props) {
         <Text style={styles.buttonText}>{loading ? 'Interpretando...' : 'Interpretar Perfil Metabólico'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </>
   );
 }
 

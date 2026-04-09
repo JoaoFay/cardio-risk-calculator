@@ -7,6 +7,8 @@ interface Props {
   result: MetabolicResult;
   input: MetabolicInput;
   onBack: () => void;
+  onGoToPremium: () => void;
+  onHistoryLimitReached: () => void;
 }
 
 const CATEGORY_LABEL: Record<GlicemiaCategory, string> = {
@@ -33,7 +35,7 @@ function getHomaLabel(value: number): string {
   return 'Resistência significativa';
 }
 
-export default function MetabolicResultScreen({ result, input, onBack }: Props) {
+export default function MetabolicResultScreen({ result, input, onBack, onGoToPremium, onHistoryLimitReached }: Props) {
   const [savedExam, setSavedExam] = useState<SavedExam | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -129,6 +131,7 @@ export default function MetabolicResultScreen({ result, input, onBack }: Props) 
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onSaved={(exam) => { setSavedExam(exam); setModalVisible(false); }}
+        onUpgradeNeeded={onHistoryLimitReached}
         type="metabolico"
         input={input}
         result={result}

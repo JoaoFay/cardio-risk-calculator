@@ -5,12 +5,15 @@ import { SavedExam, RiskResult } from '../types';
 interface Props {
   exam: SavedExam;
   onBack: () => void;
+  onEdit: (exam: SavedExam) => void;
+  showStaleWarning?: boolean;
 }
 
 const MODULE_CONFIG = {
-  cardio: { label: 'Risco Cardiovascular', color: '#c0392b' },
-  hemograma: { label: 'Hemograma Completo', color: '#2980b9' },
-  lipidograma: { label: 'Lipidograma', color: '#8e44ad' },
+  cardio:      { label: 'Risco Cardiovascular', color: '#c0392b' },
+  hemograma:   { label: 'Hemograma Completo',   color: '#2980b9' },
+  lipidograma: { label: 'Lipidograma',           color: '#8e44ad' },
+  metabolico:  { label: 'Perfil Metabólico',     color: '#16a085' },
 };
 
 function renderMarkers(exam: SavedExam) {
@@ -47,7 +50,7 @@ const riskLabels: Record<string, string> = {
   low: 'Baixo', borderline: 'Limítrofe', intermediate: 'Intermediário', high: 'Alto',
 };
 
-export default function HistoryDetailScreen({ exam, onBack }: Props) {
+export default function HistoryDetailScreen({ exam, onBack, onEdit, showStaleWarning = false }: Props) {
   const cfg = MODULE_CONFIG[exam.type];
   const markers = renderMarkers(exam);
   const aiInterpretation = (exam.result as any).aiInterpretation as string;
@@ -79,6 +82,11 @@ export default function HistoryDetailScreen({ exam, onBack }: Props) {
       </View>
 
       {/* AI interpretation */}
+      {showStaleWarning && (
+        <View style={styles.staleWarning}>
+          <Text style={styles.staleWarningText}>⚠️  A análise pode não refletir os valores editados</Text>
+        </View>
+      )}
       <View style={styles.aiCard}>
         <Text style={[styles.aiTitle, { color: cfg.color }]}>Interpretação por IA</Text>
         <Text style={styles.aiText}>{aiInterpretation}</Text>
@@ -89,6 +97,15 @@ export default function HistoryDetailScreen({ exam, onBack }: Props) {
           ⚠️ Esta ferramenta tem caráter exclusivamente educacional e não substitui avaliação médica presencial.
         </Text>
       </View>
+
+      <TouchableOpacity
+        style={styles.editButton}
+        onPress={() => onEdit(exam)}
+        accessibilityLabel="Editar exame"
+        accessibilityRole="button"
+      >
+        <Text style={[styles.editButtonText, { color: cfg.color }]}>✏️  Editar exame</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -145,4 +162,23 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   disclaimer: { fontSize: 12, color: '#7d5a00', lineHeight: 18 },
+  staleWarning: {
+    backgroundColor: '#fff8e1',
+    borderLeftWidth: 4,
+    borderLeftColor: '#f39c12',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 8,
+  },
+  staleWarningText: { fontSize: 12, color: '#7d5a00' },
+  editButton: {
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  editButtonText: { fontSize: 15, fontWeight: '600' },
 });

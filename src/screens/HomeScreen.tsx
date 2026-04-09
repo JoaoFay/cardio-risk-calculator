@@ -7,13 +7,28 @@ interface Props {
   onSelectLipidograma: () => void;
   onSelectMetabolico: () => void;
   onSelectHistory: () => void;
+  onSelectPremium: () => void;
+  dailyCount?: number;
 }
 
-export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectHistory }: Props) {
+export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectHistory, onSelectPremium, dailyCount }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>LabIA</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>LabIA</Text>
+        <TouchableOpacity
+          style={styles.premiumBadge}
+          onPress={onSelectPremium}
+          accessibilityLabel="Saiba mais sobre o LabIA Premium"
+          accessibilityRole="button"
+        >
+          <Text style={styles.premiumBadgeText}>⭐ Premium</Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.subtitle}>Selecione um módulo para começar</Text>
+      {dailyCount !== undefined && (
+        <Text style={styles.usageIndicator}>Análises hoje: {dailyCount}/3 gratuitas</Text>
+      )}
 
       <View style={styles.disclaimerBox}>
         <Text style={styles.disclaimerText}>
@@ -111,8 +126,18 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#2c3e50', marginBottom: 4, fontFamily: 'Inter_700Bold' },
-  subtitle: { fontSize: 15, color: '#666', marginBottom: 24, fontFamily: 'Inter_400Regular' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#2c3e50', fontFamily: 'Inter_700Bold' },
+  premiumBadge: {
+    borderWidth: 1,
+    borderColor: '#f39c12',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  premiumBadgeText: { fontSize: 12, color: '#f39c12', fontFamily: 'Inter_500Medium' },
+  subtitle: { fontSize: 15, color: '#666', marginBottom: 4, fontFamily: 'Inter_400Regular' },
+  usageIndicator: { fontSize: 12, color: '#999', textAlign: 'right', marginBottom: 20, fontFamily: 'Inter_400Regular' },
   disclaimerBox: {
     backgroundColor: '#fff8e1',
     borderLeftWidth: 4,
