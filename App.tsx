@@ -21,13 +21,15 @@ import LipidogramaFormScreen from './src/screens/LipidogramaFormScreen';
 import LipidogramaResultScreen from './src/screens/LipidogramaResultScreen';
 import MetabolicFormScreen from './src/screens/MetabolicFormScreen';
 import MetabolicResultScreen from './src/screens/MetabolicResultScreen';
+import TireoideFormScreen from './src/screens/TireoideFormScreen';
+import TireoideResultScreen from './src/screens/TireoideResultScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
 import EditExamScreen from './src/screens/EditExamScreen';
 import PremiumScreen from './src/screens/PremiumScreen';
 import RemindersScreen from './src/screens/RemindersScreen';
 import UpgradeModal from './src/components/UpgradeModal';
-import { RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, SavedExam, ExamType } from './src/types';
+import { RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, TireoideResult, PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, TireoideInput, SavedExam, ExamType } from './src/types';
 import { getTodayCount } from './src/storage/usageStorage';
 import { isPremium } from './src/storage/premiumStorage';
 import { getModuleFromNotificationData } from './src/services/notificationService';
@@ -49,6 +51,8 @@ type AppScreen =
   | { screen: 'lipidograma-result'; result: LipidogramaResult; input: LipidogramaInput }
   | { screen: 'metabolico-form' }
   | { screen: 'metabolico-result'; result: MetabolicResult; input: MetabolicInput }
+  | { screen: 'tireoide-form' }
+  | { screen: 'tireoide-result'; result: TireoideResult; input: TireoideInput }
   | { screen: 'history' }
   | { screen: 'history-detail'; exam: SavedExam }
   | { screen: 'edit-exam'; exam: SavedExam }
@@ -60,6 +64,7 @@ const MODULE_FORM_SCREEN: Record<ExamType, AppScreen['screen']> = {
   hemograma: 'hemograma-form',
   lipidograma: 'lipidograma-form',
   metabolico: 'metabolico-form',
+  tireoide: 'tireoide-form',
 };
 
 const STALE_KEY = 'labia:stale_exams';
@@ -137,7 +142,7 @@ export default function App() {
   // Sync last exam dates into reminder configs so notifications are calculated correctly
   useEffect(() => {
     const syncLastExamDates = async () => {
-      const moduleTypes: ExamType[] = ['cardio', 'hemograma', 'lipidograma', 'metabolico'];
+      const moduleTypes: ExamType[] = ['cardio', 'hemograma', 'lipidograma', 'metabolico', 'tireoide'];
       await Promise.all(moduleTypes.map(async (moduleType) => {
         const lastExam = await getLastExamByType(moduleType);
         if (lastExam) {
@@ -182,6 +187,7 @@ export default function App() {
           onSelectHemograma={() => setNav({ screen: 'hemograma-form' })}
           onSelectLipidograma={() => setNav({ screen: 'lipidograma-form' })}
           onSelectMetabolico={() => setNav({ screen: 'metabolico-form' })}
+          onSelectTireoide={() => setNav({ screen: 'tireoide-form' })}
           onSelectHistory={() => setNav({ screen: 'history' })}
           onSelectPremium={() => setNav({ screen: 'premium' })}
           onSelectReminders={() => setNav({ screen: 'reminders' })}
@@ -253,6 +259,24 @@ export default function App() {
 
       {nav.screen === 'metabolico-result' && (
         <MetabolicResultScreen
+          result={nav.result}
+          input={nav.input}
+          onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
+          onHistoryLimitReached={() => setShowHistoryUpgrade(true)}
+        />
+      )}
+
+      {nav.screen === 'tireoide-form' && (
+        <TireoideFormScreen
+          onResult={(result, input) => setNav({ screen: 'tireoide-result', result, input })}
+          onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
+        />
+      )}
+
+      {nav.screen === 'tireoide-result' && (
+        <TireoideResultScreen
           result={nav.result}
           input={nav.input}
           onBack={() => setNav({ screen: 'home' })}

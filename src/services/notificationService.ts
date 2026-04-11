@@ -111,7 +111,7 @@ export async function cancelModuleReminder(moduleType: ExamType): Promise<void> 
 
 export function getModuleFromNotificationData(data: Record<string, unknown>): ExamType | null {
   const moduleType = data?.moduleType;
-  if (moduleType === 'cardio' || moduleType === 'hemograma' || moduleType === 'lipidograma' || moduleType === 'metabolico') {
+  if (moduleType === 'cardio' || moduleType === 'hemograma' || moduleType === 'lipidograma' || moduleType === 'metabolico' || moduleType === 'tireoide') {
     return moduleType as ExamType;
   }
   return null;

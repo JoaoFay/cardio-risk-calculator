@@ -7,6 +7,7 @@ const MODULE_CONFIG: Record<ExamType, { label: string; color: string }> = {
   hemograma:   { label: 'Hemograma Completo',   color: '#2980b9' },
   lipidograma: { label: 'Lipidograma',           color: '#8e44ad' },
   metabolico:  { label: 'Perfil Metabólico',     color: '#16a085' },
+  tireoide:    { label: 'Tireoide',              color: '#1abc9c' },
 };
 
 const RISK_LABELS: Record<string, string> = {

@@ -86,7 +86,23 @@ export interface MetabolicResult {
   aiInterpretation: string;
 }
 
-export type ExamType = 'cardio' | 'hemograma' | 'lipidograma' | 'metabolico';
+export interface TireoideInput {
+  tsh: number;             // mIU/L — obrigatório
+  t4livre?: number;        // ng/dL — opcional
+  t3total?: number;        // ng/dL — opcional
+  t4total?: number;        // μg/dL — opcional (avançado)
+  antiTPO?: number;        // IU/mL — opcional (avançado)
+  antiTg?: number;         // IU/mL — opcional (avançado)
+}
+
+export type TireoideCategory = 'hipotireoidismo' | 'normal' | 'hipertireoidismo' | 'indeterminado';
+
+export interface TireoideResult {
+  tshCategory: TireoideCategory;
+  aiInterpretation: string;
+}
+
+export type ExamType = 'cardio' | 'hemograma' | 'lipidograma' | 'metabolico' | 'tireoide';
 
 export interface SavedExam {
   id: string;              // Date.now().toString()
@@ -95,7 +111,7 @@ export interface SavedExam {
   examDateDisplay: string; // 'DD/MM/YYYY' — para exibição
   labName: string;         // '' se não informado
   savedAt: string;         // ISO timestamp
-  input: PatientInput | HemogramaInput | LipidogramaInput | MetabolicInput;
-  result: RiskResult | HemogramaResult | LipidogramaResult | MetabolicResult;
+  input: PatientInput | HemogramaInput | LipidogramaInput | MetabolicInput | TireoideInput;
+  result: RiskResult | HemogramaResult | LipidogramaResult | MetabolicResult | TireoideResult;
   markers: Record<string, number>;
 }

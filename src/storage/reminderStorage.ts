@@ -18,6 +18,7 @@ const MODULE_LABELS: Record<ExamType, string> = {
   hemograma: 'Hemograma Completo',
   lipidograma: 'Lipidograma',
   metabolico: 'Perfil Metabólico',
+  tireoide: 'Tireoide',
 };
 
 export const MODULE_NOTIFICATION_TEXTS: Record<ExamType, string> = {
@@ -25,6 +26,7 @@ export const MODULE_NOTIFICATION_TEXTS: Record<ExamType, string> = {
   hemograma: 'Hora de verificar seu hemograma!',
   lipidograma: 'Hora de verificar seu lipidograma!',
   metabolico: 'Hora de verificar seu perfil metabólico!',
+  tireoide: 'Hora de verificar seu exame de tireoide!',
 };
 
 export { MODULE_LABELS };
@@ -34,6 +36,7 @@ const DEFAULT_CONFIGS: ReminderConfig[] = [
   { moduleType: 'hemograma', enabled: false, frequencyMonths: 6, notificationIds: [] },
   { moduleType: 'lipidograma', enabled: false, frequencyMonths: 12, notificationIds: [] },
   { moduleType: 'metabolico', enabled: false, frequencyMonths: 6, notificationIds: [] },
+  { moduleType: 'tireoide', enabled: false, frequencyMonths: 6, notificationIds: [] },
 ];
 
 async function readAll(): Promise<ReminderConfig[]> {

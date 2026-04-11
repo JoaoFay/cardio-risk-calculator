@@ -22,6 +22,7 @@ const MODULE_ICONS: Record<ExamType, string> = {
   hemograma: '🩸',
   lipidograma: '🧬',
   metabolico: '🩺',
+  tireoide: '🦋',
 };
 
 const MODULE_COLORS: Record<ExamType, string> = {
@@ -29,6 +30,7 @@ const MODULE_COLORS: Record<ExamType, string> = {
   hemograma: '#2980b9',
   lipidograma: '#8e44ad',
   metabolico: '#16a085',
+  tireoide: '#1abc9c',
 };
 
 const FREQUENCY_OPTIONS: { label: string; value: ReminderFrequency }[] = [

@@ -14,8 +14,8 @@ import { saveExam, getAllExams } from '../storage/examStorage';
 import { isPremium } from '../storage/premiumStorage';
 import {
   ExamType,
-  PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput,
-  RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult,
+  PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, TireoideInput,
+  RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, TireoideResult,
   SavedExam,
 } from '../types';
 import { extractMarkers } from '../utils/extractMarkers';
@@ -42,8 +42,8 @@ interface Props {
   onSaved: (exam: SavedExam) => void;
   onUpgradeNeeded: () => void;
   type: ExamType;
-  input: PatientInput | HemogramaInput | LipidogramaInput | MetabolicInput;
-  result: RiskResult | HemogramaResult | LipidogramaResult | MetabolicResult;
+  input: PatientInput | HemogramaInput | LipidogramaInput | MetabolicInput | TireoideInput;
+  result: RiskResult | HemogramaResult | LipidogramaResult | MetabolicResult | TireoideResult;
 }
 
 export default function SaveExamModal({ visible, onClose, onSaved, onUpgradeNeeded, type, input, result }: Props) {

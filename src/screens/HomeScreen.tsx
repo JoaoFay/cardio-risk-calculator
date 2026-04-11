@@ -6,13 +6,14 @@ interface Props {
   onSelectHemograma: () => void;
   onSelectLipidograma: () => void;
   onSelectMetabolico: () => void;
+  onSelectTireoide: () => void;
   onSelectHistory: () => void;
   onSelectPremium: () => void;
   onSelectReminders: () => void;
   dailyCount?: number;
 }
 
-export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectHistory, onSelectPremium, onSelectReminders, dailyCount }: Props) {
+export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectTireoide, onSelectHistory, onSelectPremium, onSelectReminders, dailyCount }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.titleRow}>
@@ -99,6 +100,22 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
           </Text>
         </View>
         <Text style={[styles.cardArrow, styles.cardArrowMetabolico]}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.card, styles.cardTireoide]}
+        onPress={onSelectTireoide}
+        accessibilityLabel="Abrir módulo Tireoide"
+        accessibilityRole="button"
+      >
+        <Text style={styles.cardIcon}>🦋</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitleTireoide]}>Tireoide</Text>
+          <Text style={styles.cardDescription}>
+            Interprete TSH, T4 livre, T3 e anticorpos tireoideos com análise de hipotireoidismo e hipertireoidismo por IA.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowTireoide]}>›</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -196,6 +213,9 @@ const styles = StyleSheet.create({
   cardArrowMetabolico: { color: '#16a085' },
   cardTitleHistory: { color: '#7f8c8d' },
   cardArrowHistory: { color: '#7f8c8d' },
+  cardTireoide: { borderLeftColor: '#1abc9c' },
+  cardTitleTireoide: { color: '#1abc9c' },
+  cardArrowTireoide: { color: '#1abc9c' },
   cardReminders: { borderLeftColor: '#e67e22' },
   cardTitleReminders: { color: '#e67e22' },
   cardArrowReminders: { color: '#e67e22' },
