@@ -36,6 +36,17 @@ export async function saveExam(
   return saved;
 }
 
+export async function updateExam(
+  id: string,
+  updates: Partial<Omit<SavedExam, 'id' | 'savedAt'>>,
+): Promise<void> {
+  const all = await readAll();
+  const idx = all.findIndex(e => e.id === id);
+  if (idx === -1) return;
+  all[idx] = { ...all[idx], ...updates };
+  await writeAll(all);
+}
+
 export async function deleteExam(id: string): Promise<void> {
   const exams = await readAll();
   await writeAll(exams.filter(e => e.id !== id));

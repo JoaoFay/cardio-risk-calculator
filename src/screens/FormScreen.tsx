@@ -15,10 +15,14 @@ import { calculateFramingham, framinghamCategory } from '../calculators/framingh
 import { calculateASCVD, ascvdCategory } from '../calculators/ascvd';
 import { getAIInterpretation } from '../services/openai';
 import { getLastExamByType } from '../storage/examStorage';
+import { isPremium } from '../storage/premiumStorage';
+import { getTodayCount, incrementUsage } from '../storage/usageStorage';
+import UpgradeModal from '../components/UpgradeModal';
 
 interface Props {
   onResult: (result: RiskResult, input: PatientInput) => void;
   onBack: () => void;
+  onGoToPremium: () => void;
 }
 
 const LIMITS = {
@@ -32,7 +36,7 @@ function outOfRange(value: number, min: number, max: number) {
   return !isNaN(value) && value !== 0 && (value < min || value > max);
 }
 
-export default function FormScreen({ onResult, onBack }: Props) {
+export default function FormScreen({ onResult, onBack, onGoToPremium }: Props) {
   const [age, setAge] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('male');
   const [totalCholesterol, setTotalCholesterol] = useState('');
@@ -45,6 +49,7 @@ export default function FormScreen({ onResult, onBack }: Props) {
   const [loading, setLoading] = useState(false);
   const [autoFillDate, setAutoFillDate] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
     getLastExamByType('lipidograma').then(exam => {
@@ -127,10 +132,20 @@ export default function FormScreen({ onResult, onBack }: Props) {
       aiInterpretation: '',
     };
 
+    const premium = await isPremium();
+    if (!premium) {
+      const count = await getTodayCount();
+      if (count >= 3) {
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const previousExam = await getLastExamByType('cardio');
       const interpretation = await getAIInterpretation(input, partialResult, previousExam ?? undefined);
+      await incrementUsage();
       onResult({ ...partialResult, aiInterpretation: interpretation }, input);
     } catch (e: any) {
       Alert.alert('Erro na IA', e.message);
@@ -141,6 +156,13 @@ export default function FormScreen({ onResult, onBack }: Props) {
   }
 
   return (
+    <>
+    <UpgradeModal
+      visible={showUpgradeModal}
+      onClose={() => setShowUpgradeModal(false)}
+      onLearnMore={() => { setShowUpgradeModal(false); onGoToPremium(); }}
+      reason="analyses"
+    />
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <TouchableOpacity onPress={onBack} style={styles.backButton} accessibilityLabel="Voltar" accessibilityRole="button">
         <Text style={styles.backText}>‹ Voltar</Text>
@@ -273,6 +295,7 @@ export default function FormScreen({ onResult, onBack }: Props) {
         <Text style={styles.buttonText}>{loading ? 'Calculando...' : 'Calcular Risco'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </>
   );
 }
 

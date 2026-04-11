@@ -7,6 +7,8 @@ interface Props {
   result: LipidogramaResult;
   input: LipidogramaInput;
   onBack: () => void;
+  onGoToPremium: () => void;
+  onHistoryLimitReached: () => void;
 }
 
 interface IndexRow {
@@ -43,7 +45,7 @@ const INDEX_ROWS: IndexRow[] = [
   },
 ];
 
-export default function LipidogramaResultScreen({ result, input, onBack }: Props) {
+export default function LipidogramaResultScreen({ result, input, onBack, onGoToPremium, onHistoryLimitReached }: Props) {
   const [savedExam, setSavedExam] = useState<SavedExam | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -114,6 +116,7 @@ export default function LipidogramaResultScreen({ result, input, onBack }: Props
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onSaved={(exam) => { setSavedExam(exam); setModalVisible(false); }}
+        onUpgradeNeeded={onHistoryLimitReached}
         type="lipidograma"
         input={input}
         result={result}

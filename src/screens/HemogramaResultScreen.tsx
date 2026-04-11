@@ -7,9 +7,11 @@ interface Props {
   result: HemogramaResult;
   input: HemogramaInput;
   onBack: () => void;
+  onGoToPremium: () => void;
+  onHistoryLimitReached: () => void;
 }
 
-export default function HemogramaResultScreen({ result, input, onBack }: Props) {
+export default function HemogramaResultScreen({ result, input, onBack, onGoToPremium, onHistoryLimitReached }: Props) {
   const [savedExam, setSavedExam] = useState<SavedExam | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -46,6 +48,7 @@ export default function HemogramaResultScreen({ result, input, onBack }: Props) 
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onSaved={(exam) => { setSavedExam(exam); setModalVisible(false); }}
+        onUpgradeNeeded={onHistoryLimitReached}
         type="hemograma"
         input={input}
         result={result}

@@ -2,9 +2,15 @@
   "expo": {
     "name": "LabIA",
     "slug": "cardio-risk-calculator",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "scheme": "labia",
     "orientation": "portrait",
+    "updates": {
+      "url": "https://u.expo.dev/8d010114-50a6-4e90-bcab-4b60fbec9fbc"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -39,6 +45,16 @@
     },
     "plugins": [
       "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#2c3e50",
+          "sounds": [],
+          "androidMode": "default",
+          "androidCollapsedTitle": "LabIA"
+        }
+      ],
       [
         "@sentry/react-native",
         {

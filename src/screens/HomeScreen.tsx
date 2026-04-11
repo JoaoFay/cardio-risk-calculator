@@ -6,14 +6,33 @@ interface Props {
   onSelectHemograma: () => void;
   onSelectLipidograma: () => void;
   onSelectMetabolico: () => void;
+  onSelectTireoide: () => void;
   onSelectHistory: () => void;
+  onSelectPremium: () => void;
+  onSelectReminders: () => void;
+  onSelectExamPrepGuide: () => void;
+  onSelectGlossary: () => void;
+  dailyCount?: number;
 }
 
-export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectHistory }: Props) {
+export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectTireoide, onSelectHistory, onSelectPremium, onSelectReminders, onSelectExamPrepGuide, onSelectGlossary, dailyCount }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>LabIA</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>LabIA</Text>
+        <TouchableOpacity
+          style={styles.premiumBadge}
+          onPress={onSelectPremium}
+          accessibilityLabel="Saiba mais sobre o LabIA Premium"
+          accessibilityRole="button"
+        >
+          <Text style={styles.premiumBadgeText}>⭐ Premium</Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.subtitle}>Selecione um módulo para começar</Text>
+      {dailyCount !== undefined && (
+        <Text style={styles.usageIndicator}>Análises hoje: {dailyCount}/3 gratuitas</Text>
+      )}
 
       <View style={styles.disclaimerBox}>
         <Text style={styles.disclaimerText}>
@@ -86,6 +105,22 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
       </TouchableOpacity>
 
       <TouchableOpacity
+        style={[styles.card, styles.cardTireoide]}
+        onPress={onSelectTireoide}
+        accessibilityLabel="Abrir módulo Tireoide"
+        accessibilityRole="button"
+      >
+        <Text style={styles.cardIcon}>🦋</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitleTireoide]}>Tireoide</Text>
+          <Text style={styles.cardDescription}>
+            Interprete TSH, T4 livre, T3 e anticorpos tireoideos com análise de hipotireoidismo e hipertireoidismo por IA.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowTireoide]}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
         style={[styles.card, styles.cardHistory]}
         onPress={onSelectHistory}
         accessibilityLabel="Abrir Meu Histórico de exames"
@@ -101,6 +136,54 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
         <Text style={[styles.cardArrow, styles.cardArrowHistory]}>›</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={[styles.card, styles.cardReminders]}
+        onPress={onSelectReminders}
+        accessibilityLabel="Gerenciar lembretes de exames"
+        accessibilityRole="button"
+      >
+        <Text style={styles.cardIcon}>🔔</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitleReminders]}>Lembretes</Text>
+          <Text style={styles.cardDescription}>
+            Configure notificações periódicas para lembrar de refazer seus exames.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowReminders]}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.card, styles.cardPrepGuide]}
+        onPress={onSelectExamPrepGuide}
+        accessibilityLabel="Abrir guia de preparação para exames"
+        accessibilityRole="button"
+      >
+        <Text style={styles.cardIcon}>📝</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitlePrepGuide]}>Guia de Preparação</Text>
+          <Text style={styles.cardDescription}>
+            Saiba como se preparar para cada exame: jejum, hidratação e medicamentos.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowPrepGuide]}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.card, styles.cardGlossary]}
+        onPress={onSelectGlossary}
+        accessibilityLabel="Abrir glossário de marcadores"
+        accessibilityRole="button"
+      >
+        <Text style={styles.cardIcon}>🔬</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitleGlossary]}>Glossário de Marcadores</Text>
+          <Text style={styles.cardDescription}>
+            Entenda os termos técnicos dos seus exames em linguagem simples.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowGlossary]}>›</Text>
+      </TouchableOpacity>
+
       <Text style={styles.footerDisclaimer}>
         LabIA é um app educativo. Não substitui consulta médica.
       </Text>
@@ -111,8 +194,18 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#2c3e50', marginBottom: 4, fontFamily: 'Inter_700Bold' },
-  subtitle: { fontSize: 15, color: '#666', marginBottom: 24, fontFamily: 'Inter_400Regular' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#2c3e50', fontFamily: 'Inter_700Bold' },
+  premiumBadge: {
+    borderWidth: 1,
+    borderColor: '#f39c12',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  premiumBadgeText: { fontSize: 12, color: '#f39c12', fontFamily: 'Inter_500Medium' },
+  subtitle: { fontSize: 15, color: '#666', marginBottom: 4, fontFamily: 'Inter_400Regular' },
+  usageIndicator: { fontSize: 12, color: '#999', textAlign: 'right', marginBottom: 20, fontFamily: 'Inter_400Regular' },
   disclaimerBox: {
     backgroundColor: '#fff8e1',
     borderLeftWidth: 4,
@@ -154,6 +247,18 @@ const styles = StyleSheet.create({
   cardArrowMetabolico: { color: '#16a085' },
   cardTitleHistory: { color: '#7f8c8d' },
   cardArrowHistory: { color: '#7f8c8d' },
+  cardTireoide: { borderLeftColor: '#1abc9c' },
+  cardTitleTireoide: { color: '#1abc9c' },
+  cardArrowTireoide: { color: '#1abc9c' },
+  cardReminders: { borderLeftColor: '#e67e22' },
+  cardTitleReminders: { color: '#e67e22' },
+  cardArrowReminders: { color: '#e67e22' },
+  cardPrepGuide: { borderLeftColor: '#27ae60' },
+  cardTitlePrepGuide: { color: '#27ae60' },
+  cardArrowPrepGuide: { color: '#27ae60' },
+  cardGlossary: { borderLeftColor: '#2c3e50' },
+  cardTitleGlossary: { color: '#2c3e50' },
+  cardArrowGlossary: { color: '#2c3e50' },
   footerDisclaimer: {
     marginTop: 24,
     textAlign: 'center',

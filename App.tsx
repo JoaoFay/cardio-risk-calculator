@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 import {
   useFonts,
@@ -9,6 +9,7 @@ import {
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Sentry from '@sentry/react-native';
+import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -20,9 +21,22 @@ import LipidogramaFormScreen from './src/screens/LipidogramaFormScreen';
 import LipidogramaResultScreen from './src/screens/LipidogramaResultScreen';
 import MetabolicFormScreen from './src/screens/MetabolicFormScreen';
 import MetabolicResultScreen from './src/screens/MetabolicResultScreen';
+import TireoideFormScreen from './src/screens/TireoideFormScreen';
+import TireoideResultScreen from './src/screens/TireoideResultScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
-import { RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, SavedExam } from './src/types';
+import EditExamScreen from './src/screens/EditExamScreen';
+import PremiumScreen from './src/screens/PremiumScreen';
+import RemindersScreen from './src/screens/RemindersScreen';
+import ExamPrepGuideScreen from './src/screens/ExamPrepGuideScreen';
+import GlossaryScreen from './src/screens/GlossaryScreen';
+import UpgradeModal from './src/components/UpgradeModal';
+import { RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, TireoideResult, PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, TireoideInput, SavedExam, ExamType } from './src/types';
+import { getTodayCount } from './src/storage/usageStorage';
+import { isPremium } from './src/storage/premiumStorage';
+import { getModuleFromNotificationData } from './src/services/notificationService';
+import { getReminderByModule, updateReminder } from './src/storage/reminderStorage';
+import { getLastExamByType } from './src/storage/examStorage';
 
 Sentry.init({ dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || '' });
 
@@ -39,12 +53,33 @@ type AppScreen =
   | { screen: 'lipidograma-result'; result: LipidogramaResult; input: LipidogramaInput }
   | { screen: 'metabolico-form' }
   | { screen: 'metabolico-result'; result: MetabolicResult; input: MetabolicInput }
+  | { screen: 'tireoide-form' }
+  | { screen: 'tireoide-result'; result: TireoideResult; input: TireoideInput }
   | { screen: 'history' }
-  | { screen: 'history-detail'; exam: SavedExam };
+  | { screen: 'history-detail'; exam: SavedExam }
+  | { screen: 'edit-exam'; exam: SavedExam }
+  | { screen: 'premium' }
+  | { screen: 'reminders' }
+  | { screen: 'exam-prep-guide' }
+  | { screen: 'glossary' };
+
+const MODULE_FORM_SCREEN: Record<ExamType, AppScreen['screen']> = {
+  cardio: 'cardio-form',
+  hemograma: 'hemograma-form',
+  lipidograma: 'lipidograma-form',
+  metabolico: 'metabolico-form',
+  tireoide: 'tireoide-form',
+};
+
+const STALE_KEY = 'labia:stale_exams';
 
 export default function App() {
   const [nav, setNav] = useState<AppScreen>({ screen: 'home' });
   const [appReady, setAppReady] = useState(false);
+  const [staleExamIds, setStaleExamIds] = useState<Set<string>>(new Set());
+  const [dailyCount, setDailyCount] = useState<number | undefined>(undefined);
+  const [showHistoryUpgrade, setShowHistoryUpgrade] = useState(false);
+  const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -53,20 +88,92 @@ export default function App() {
     Inter_700Bold,
   });
 
+  const refreshHomeData = useCallback(async () => {
+    const [count, premium] = await Promise.all([getTodayCount(), isPremium()]);
+    setDailyCount(premium ? undefined : count);
+  }, []);
+
   useEffect(() => {
-    AsyncStorage.getItem('labia:onboarding_completed').then(value => {
-      if (value !== 'true') {
+    const init = async () => {
+      const [onboarding, staleRaw] = await Promise.all([
+        AsyncStorage.getItem('labia:onboarding_completed'),
+        AsyncStorage.getItem(STALE_KEY),
+      ]);
+      if (onboarding !== 'true') {
         setNav({ screen: 'onboarding' });
       }
+      if (staleRaw) {
+        try {
+          const ids: string[] = JSON.parse(staleRaw);
+          setStaleExamIds(new Set(ids));
+        } catch { /* ignore */ }
+      }
       setAppReady(true);
-    });
+    };
+    init();
   }, []);
+
+  useEffect(() => {
+    if (nav.screen === 'home') {
+      refreshHomeData();
+    }
+  }, [nav.screen, refreshHomeData]);
+
+  async function markStale(id: string) {
+    setStaleExamIds(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      AsyncStorage.setItem(STALE_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }
+
+  async function clearStale(id: string) {
+    setStaleExamIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      AsyncStorage.setItem(STALE_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }
 
   useEffect(() => {
     if ((fontsLoaded || fontError) && appReady) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError, appReady]);
+
+  // Sync last exam dates into reminder configs so notifications are calculated correctly
+  useEffect(() => {
+    const syncLastExamDates = async () => {
+      const moduleTypes: ExamType[] = ['cardio', 'hemograma', 'lipidograma', 'metabolico', 'tireoide'];
+      await Promise.all(moduleTypes.map(async (moduleType) => {
+        const lastExam = await getLastExamByType(moduleType);
+        if (lastExam) {
+          const config = await getReminderByModule(moduleType);
+          if (config.lastExamDate !== lastExam.examDate) {
+            await updateReminder(moduleType, { lastExamDate: lastExam.examDate });
+          }
+        }
+      }));
+    };
+    syncLastExamDates();
+  }, []);
+
+  // Handle notification taps — navigate to the relevant module form
+  useEffect(() => {
+    notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data as Record<string, unknown>;
+      const moduleType = getModuleFromNotificationData(data);
+      if (moduleType) {
+        const targetScreen = MODULE_FORM_SCREEN[moduleType];
+        setNav({ screen: targetScreen } as AppScreen);
+      }
+    });
+    return () => {
+      notificationResponseListener.current?.remove();
+    };
+  }, []);
 
   if ((!fontsLoaded && !fontError) || !appReady) return null;
 
@@ -84,7 +191,13 @@ export default function App() {
           onSelectHemograma={() => setNav({ screen: 'hemograma-form' })}
           onSelectLipidograma={() => setNav({ screen: 'lipidograma-form' })}
           onSelectMetabolico={() => setNav({ screen: 'metabolico-form' })}
+          onSelectTireoide={() => setNav({ screen: 'tireoide-form' })}
           onSelectHistory={() => setNav({ screen: 'history' })}
+          onSelectPremium={() => setNav({ screen: 'premium' })}
+          onSelectReminders={() => setNav({ screen: 'reminders' })}
+          onSelectExamPrepGuide={() => setNav({ screen: 'exam-prep-guide' })}
+          onSelectGlossary={() => setNav({ screen: 'glossary' })}
+          dailyCount={dailyCount}
         />
       )}
 
@@ -92,6 +205,7 @@ export default function App() {
         <FormScreen
           onResult={(result, input) => setNav({ screen: 'cardio-result', result, input })}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
         />
       )}
 
@@ -100,6 +214,8 @@ export default function App() {
           result={nav.result}
           input={nav.input}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
+          onHistoryLimitReached={() => setShowHistoryUpgrade(true)}
         />
       )}
 
@@ -107,6 +223,7 @@ export default function App() {
         <HemogramaFormScreen
           onResult={(result, input) => setNav({ screen: 'hemograma-result', result, input })}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
         />
       )}
 
@@ -115,6 +232,8 @@ export default function App() {
           result={nav.result}
           input={nav.input}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
+          onHistoryLimitReached={() => setShowHistoryUpgrade(true)}
         />
       )}
 
@@ -122,6 +241,7 @@ export default function App() {
         <LipidogramaFormScreen
           onResult={(result, input) => setNav({ screen: 'lipidograma-result', result, input })}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
         />
       )}
 
@@ -130,6 +250,8 @@ export default function App() {
           result={nav.result}
           input={nav.input}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
+          onHistoryLimitReached={() => setShowHistoryUpgrade(true)}
         />
       )}
 
@@ -137,6 +259,7 @@ export default function App() {
         <MetabolicFormScreen
           onResult={(result, input) => setNav({ screen: 'metabolico-result', result, input })}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
         />
       )}
 
@@ -145,6 +268,26 @@ export default function App() {
           result={nav.result}
           input={nav.input}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
+          onHistoryLimitReached={() => setShowHistoryUpgrade(true)}
+        />
+      )}
+
+      {nav.screen === 'tireoide-form' && (
+        <TireoideFormScreen
+          onResult={(result, input) => setNav({ screen: 'tireoide-result', result, input })}
+          onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
+        />
+      )}
+
+      {nav.screen === 'tireoide-result' && (
+        <TireoideResultScreen
+          result={nav.result}
+          input={nav.input}
+          onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
+          onHistoryLimitReached={() => setShowHistoryUpgrade(true)}
         />
       )}
 
@@ -152,6 +295,7 @@ export default function App() {
         <HistoryScreen
           onViewDetail={(exam) => setNav({ screen: 'history-detail', exam })}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
         />
       )}
 
@@ -159,8 +303,48 @@ export default function App() {
         <HistoryDetailScreen
           exam={nav.exam}
           onBack={() => setNav({ screen: 'history' })}
+          onEdit={(exam) => setNav({ screen: 'edit-exam', exam })}
+          showStaleWarning={staleExamIds.has(nav.exam.id)}
         />
       )}
+
+      {nav.screen === 'edit-exam' && (
+        <EditExamScreen
+          exam={nav.exam}
+          onBack={() => setNav({ screen: 'history-detail', exam: nav.exam })}
+          onSaved={(updated, isStale) => {
+            if (isStale) {
+              markStale(updated.id);
+            } else {
+              clearStale(updated.id);
+            }
+            setNav({ screen: 'history-detail', exam: updated });
+          }}
+        />
+      )}
+
+      {nav.screen === 'premium' && (
+        <PremiumScreen onBack={() => setNav({ screen: 'home' })} />
+      )}
+
+      {nav.screen === 'reminders' && (
+        <RemindersScreen onBack={() => setNav({ screen: 'home' })} />
+      )}
+
+      {nav.screen === 'exam-prep-guide' && (
+        <ExamPrepGuideScreen onBack={() => setNav({ screen: 'home' })} />
+      )}
+
+      {nav.screen === 'glossary' && (
+        <GlossaryScreen onBack={() => setNav({ screen: 'home' })} />
+      )}
+
+      <UpgradeModal
+        visible={showHistoryUpgrade}
+        onClose={() => setShowHistoryUpgrade(false)}
+        onLearnMore={() => { setShowHistoryUpgrade(false); setNav({ screen: 'premium' }); }}
+        reason="history"
+      />
     </SafeAreaView>
   );
 }

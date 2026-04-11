@@ -1,105 +1,72 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { MetabolicResult, MetabolicInput, GlicemiaCategory, SavedExam } from '../types';
+import { TireoideResult, TireoideInput, TireoideCategory, SavedExam } from '../types';
 import SaveExamModal from '../components/SaveExamModal';
 
 interface Props {
-  result: MetabolicResult;
-  input: MetabolicInput;
+  result: TireoideResult;
+  input: TireoideInput;
   onBack: () => void;
   onGoToPremium: () => void;
   onHistoryLimitReached: () => void;
 }
 
-const CATEGORY_LABEL: Record<GlicemiaCategory, string> = {
+const CATEGORY_LABEL: Record<TireoideCategory, string> = {
+  hipotireoidismo: 'Sugestivo de Hipotireoidismo',
   normal: 'Normal',
-  prediabetes: 'Pré-diabetes',
-  diabetes: 'Sugestivo de Diabetes',
+  hipertireoidismo: 'Sugestivo de Hipertireoidismo',
+  indeterminado: 'Indeterminado',
 };
 
-const CATEGORY_COLOR: Record<GlicemiaCategory, string> = {
+const CATEGORY_COLOR: Record<TireoideCategory, string> = {
+  hipotireoidismo: '#2980b9',
   normal: '#27ae60',
-  prediabetes: '#e67e22',
-  diabetes: '#c0392b',
+  hipertireoidismo: '#c0392b',
+  indeterminado: '#7f8c8d',
 };
 
-function getHomaColor(value: number): string {
-  if (value <= 2.0) return '#27ae60';
-  if (value <= 4.0) return '#e67e22';
-  return '#c0392b';
-}
-
-function getHomaLabel(value: number): string {
-  if (value <= 2.0) return 'Normal';
-  if (value <= 4.0) return 'Resistência leve';
-  return 'Resistência significativa';
-}
-
-export default function MetabolicResultScreen({ result, input, onBack, onGoToPremium, onHistoryLimitReached }: Props) {
+export default function TireoideResultScreen({ result, input, onBack, onGoToPremium, onHistoryLimitReached }: Props) {
   const [savedExam, setSavedExam] = useState<SavedExam | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Resultado — Perfil Metabólico</Text>
+      <Text style={styles.title}>Resultado — Tireoide</Text>
 
       {/* Valores medidos */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>🩺 Valores Medidos</Text>
-        <Row label="Glicemia em Jejum" value={`${input.glicemiaJejum} mg/dL`} last={input.glicemiaPosP == null && input.hbA1c == null && input.insulinaJejum == null} />
-        {input.glicemiaPosP != null && (
-          <Row label="Glicemia Pós-Prandial (2h)" value={`${input.glicemiaPosP} mg/dL`} last={input.hbA1c == null && input.insulinaJejum == null} />
+        <Text style={styles.cardTitle}>🦋 Valores Medidos</Text>
+        <Row label="TSH" value={`${input.tsh} mIU/L`} last={input.t4livre == null && input.t3total == null && input.t4total == null && input.antiTPO == null && input.antiTg == null} />
+        {input.t4livre != null && (
+          <Row label="T4 Livre" value={`${input.t4livre} ng/dL`} last={input.t3total == null && input.t4total == null && input.antiTPO == null && input.antiTg == null} />
         )}
-        {input.hbA1c != null && (
-          <Row label="HbA1c" value={`${input.hbA1c}%`} last={input.insulinaJejum == null} />
+        {input.t3total != null && (
+          <Row label="T3 Total" value={`${input.t3total} ng/dL`} last={input.t4total == null && input.antiTPO == null && input.antiTg == null} />
         )}
-        {input.insulinaJejum != null && (
-          <Row label="Insulina em Jejum" value={`${input.insulinaJejum} μUI/mL`} last />
+        {input.t4total != null && (
+          <Row label="T4 Total" value={`${input.t4total} μg/dL`} last={input.antiTPO == null && input.antiTg == null} />
+        )}
+        {input.antiTPO != null && (
+          <Row label="Anti-TPO" value={`${input.antiTPO} IU/mL`} last={input.antiTg == null} />
+        )}
+        {input.antiTg != null && (
+          <Row label="Anti-Tg" value={`${input.antiTg} IU/mL`} last />
         )}
       </View>
 
-      {/* Classificação SBD */}
+      {/* Classificação TSH */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>📊 Classificação SBD</Text>
-        <View style={[styles.classRow, result.hbA1cCategory == null && styles.rowBorder === undefined ? {} : styles.rowBorder]}>
+        <Text style={styles.cardTitle}>📊 Classificação do TSH</Text>
+        <View style={styles.classRow}>
           <View style={styles.classLeft}>
-            <Text style={styles.classLabel}>Glicemia em Jejum</Text>
-            <Text style={styles.classRef}>Normal &lt;100 · Pré 100–125 · DM ≥126 mg/dL</Text>
+            <Text style={styles.classLabel}>TSH</Text>
+            <Text style={styles.classRef}>Hipo &gt;4,0 · Normal 0,4–4,0 · Hiper &lt;0,4 mIU/L</Text>
           </View>
-          <View style={[styles.badge, { backgroundColor: CATEGORY_COLOR[result.glicemiaCategory] }]}>
-            <Text style={styles.badgeText}>{CATEGORY_LABEL[result.glicemiaCategory]}</Text>
+          <View style={[styles.badge, { backgroundColor: CATEGORY_COLOR[result.tshCategory] }]}>
+            <Text style={styles.badgeText}>{CATEGORY_LABEL[result.tshCategory]}</Text>
           </View>
         </View>
-        {result.hbA1cCategory != null && (
-          <View style={styles.classRow}>
-            <View style={styles.classLeft}>
-              <Text style={styles.classLabel}>HbA1c</Text>
-              <Text style={styles.classRef}>Normal &lt;5,7% · Pré 5,7–6,4% · DM ≥6,5%</Text>
-            </View>
-            <View style={[styles.badge, { backgroundColor: CATEGORY_COLOR[result.hbA1cCategory] }]}>
-              <Text style={styles.badgeText}>{CATEGORY_LABEL[result.hbA1cCategory]}</Text>
-            </View>
-          </View>
-        )}
       </View>
-
-      {/* HOMA-IR */}
-      {result.homaIR != null && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>⚡ HOMA-IR — Resistência Insulínica</Text>
-          <View style={styles.homaRow}>
-            <View style={styles.homaLeft}>
-              <Text style={[styles.homaValue, { color: getHomaColor(result.homaIR) }]}>
-                {result.homaIR}
-              </Text>
-              <Text style={[styles.homaStatus, { color: getHomaColor(result.homaIR) }]}>
-                {getHomaLabel(result.homaIR)}
-              </Text>
-            </View>
-            <Text style={styles.homaRef}>ref: ≤2,0 normal{'\n'}2,0–4,0 leve{'\n'}&gt;4,0 significativa</Text>
-          </View>
-        </View>
-      )}
 
       {/* AI */}
       <View style={styles.aiCard}>
@@ -132,7 +99,7 @@ export default function MetabolicResultScreen({ result, input, onBack, onGoToPre
         onClose={() => setModalVisible(false)}
         onSaved={(exam) => { setSavedExam(exam); setModalVisible(false); }}
         onUpgradeNeeded={onHistoryLimitReached}
-        type="metabolico"
+        type="tireoide"
         input={input}
         result={result}
       />
@@ -149,10 +116,12 @@ function Row({ label, value, last }: { label: string; value: string; last?: bool
   );
 }
 
+const ACCENT = '#1abc9c';
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#16a085', marginBottom: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', color: ACCENT, marginBottom: 20 },
 
   card: {
     backgroundColor: '#fff',
@@ -164,7 +133,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     overflow: 'hidden',
   },
-  cardTitle: { fontSize: 15, fontWeight: 'bold', color: '#16a085', padding: 16, paddingBottom: 8 },
+  cardTitle: { fontSize: 15, fontWeight: 'bold', color: ACCENT, padding: 16, paddingBottom: 8 },
 
   dataRow: {
     flexDirection: 'row',
@@ -183,8 +152,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   classLeft: { flex: 1, marginRight: 12 },
   classLabel: { fontSize: 14, color: '#333', fontWeight: '500' },
@@ -196,17 +163,6 @@ const styles = StyleSheet.create({
   },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
 
-  homaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  homaLeft: { flex: 1 },
-  homaValue: { fontSize: 36, fontWeight: 'bold' },
-  homaStatus: { fontSize: 13, fontWeight: '600', marginTop: 2 },
-  homaRef: { fontSize: 11, color: '#aaa', textAlign: 'right', lineHeight: 17 },
-
   aiCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -217,7 +173,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  aiTitle: { fontSize: 16, fontWeight: 'bold', color: '#16a085', marginBottom: 12 },
+  aiTitle: { fontSize: 16, fontWeight: 'bold', color: ACCENT, marginBottom: 12 },
   aiText: { fontSize: 14, color: '#444', lineHeight: 22 },
 
   disclaimerBox: {
@@ -232,13 +188,13 @@ const styles = StyleSheet.create({
 
   saveButton: {
     borderWidth: 2,
-    borderColor: '#16a085',
+    borderColor: ACCENT,
     padding: 14,
     borderRadius: 10,
     alignItems: 'center',
     marginBottom: 12,
   },
-  saveButtonText: { color: '#16a085', fontSize: 15, fontWeight: '600' },
+  saveButtonText: { color: ACCENT, fontSize: 15, fontWeight: '600' },
   savedBadge: {
     backgroundColor: '#eafaf1',
     borderRadius: 10,
@@ -248,7 +204,7 @@ const styles = StyleSheet.create({
   },
   savedText: { color: '#27ae60', fontWeight: '600', fontSize: 14 },
   button: {
-    backgroundColor: '#16a085',
+    backgroundColor: ACCENT,
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
