@@ -10,11 +10,14 @@ import {
 } from 'react-native';
 import { SavedExam } from '../types';
 import { getAllExams, deleteExam } from '../storage/examStorage';
+import { isPremium } from '../storage/premiumStorage';
+import { exportExamsPdf } from '../services/pdfExport';
 import MarkerChart from '../components/MarkerChart';
 
 interface Props {
   onViewDetail: (exam: SavedExam) => void;
   onBack: () => void;
+  onGoToPremium: () => void;
 }
 
 const MODULE_CONFIG = {
@@ -66,9 +69,10 @@ function formatMarkersSummary(exam: SavedExam): string {
   }
 }
 
-export default function HistoryScreen({ onViewDetail, onBack }: Props) {
+export default function HistoryScreen({ onViewDetail, onBack, onGoToPremium }: Props) {
   const [exams, setExams] = useState<SavedExam[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,6 +80,26 @@ export default function HistoryScreen({ onViewDetail, onBack }: Props) {
     setExams(all);
     setLoading(false);
   }, []);
+
+  async function handleExportPdf() {
+    const premium = await isPremium();
+    if (!premium) {
+      onGoToPremium();
+      return;
+    }
+    if (exams.length === 0) {
+      Alert.alert('Sem exames', 'Não há exames salvos para exportar.');
+      return;
+    }
+    try {
+      setExporting(true);
+      await exportExamsPdf(exams);
+    } catch (err: any) {
+      Alert.alert('Erro ao exportar', err?.message ?? 'Tente novamente.');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -111,7 +135,21 @@ export default function HistoryScreen({ onViewDetail, onBack }: Props) {
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
         <Text style={styles.backText}>‹ Voltar</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Meu Histórico</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>Meu Histórico</Text>
+        <TouchableOpacity
+          style={[styles.exportButton, exporting && styles.exportButtonDisabled]}
+          onPress={handleExportPdf}
+          disabled={exporting}
+          accessibilityLabel="Exportar PDF"
+          accessibilityRole="button"
+        >
+          {exporting
+            ? <ActivityIndicator size="small" color="#fff" />
+            : <Text style={styles.exportButtonText}>⭐ PDF</Text>
+          }
+        </TouchableOpacity>
+      </View>
 
       {loading && <ActivityIndicator color="#555" style={{ marginTop: 40 }} />}
 
@@ -184,7 +222,23 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: 40 },
   backButton: { marginBottom: 8 },
   backText: { fontSize: 16, color: '#555', fontWeight: '500' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#2c3e50', marginBottom: 24 },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#2c3e50' },
+  exportButton: {
+    backgroundColor: '#f39c12',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 70,
+    alignItems: 'center',
+  },
+  exportButtonDisabled: { opacity: 0.6 },
+  exportButtonText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
   emptyBox: {
     alignItems: 'center',

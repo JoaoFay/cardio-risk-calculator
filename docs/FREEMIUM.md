@@ -72,6 +72,27 @@ Both lead to `PremiumScreen` via `onLearnMore()`.
 
 `src/screens/PremiumScreen.tsx` — lists upcoming premium benefits (unlimited analyses, unlimited history, evolution charts, PDF export, reminders) with a mailto link to express interest. Premium is not yet purchasable.
 
+### PDF Export (Premium Feature)
+
+`src/services/pdfExport.ts` — generates and shares a PDF report of all saved exams.
+
+**Entry point:** `exportExamsPdf(exams: SavedExam[], filter?: ExportFilter): Promise<void>`
+
+**Filter options (`ExportFilter`):**
+- `types?: ExamType[]` — restrict to specific modules (e.g. `['cardio', 'hemograma']`)
+- `fromDate?: string` — start date in `'YYYY-MM-DD'` format (inclusive)
+- `toDate?: string` — end date in `'YYYY-MM-DD'` format (inclusive)
+
+**Flow:**
+1. Applies filters to the exam list.
+2. Builds an A4-formatted HTML document with LabIA branding (`#f39c12`) containing per-module sections (markers table + AI interpretation).
+3. Converts HTML to a PDF file using `expo-print` (`Print.printToFileAsync`).
+4. Opens the native share sheet via `expo-sharing` (`Sharing.shareAsync`).
+
+**Feature gate:** `HistoryScreen` calls `isPremium()` before invoking `exportExamsPdf`. Non-premium users are redirected to `PremiumScreen`.
+
+**UI:** A `⭐ PDF` button appears in the top-right corner of `HistoryScreen` (next to the screen title). During export it shows a loading spinner and is disabled to prevent double-taps.
+
 ### Home Screen Usage Indicator
 
 `App.tsx` calls `getTodayCount()` + `isPremium()` whenever the user navigates to the home screen. It passes `dailyCount` to `HomeScreen`, which renders:
@@ -133,4 +154,5 @@ When a purchase flow is implemented:
 | Paywall/upgrade flow in app | ✅ `UpgradeModal` + `PremiumScreen` |
 | Backend Vercel functions enforce freemium limits | ✅ IP rate-limiting (20/hr); legacy `analyze.js` has monthly tier check |
 | AsyncStorage compatibility | ✅ All state in AsyncStorage |
+| PDF export (premium) | ✅ `expo-print` + `expo-sharing`; premium-gated in `HistoryScreen` |
 | Freemium logic documented | ✅ This document |

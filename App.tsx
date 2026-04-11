@@ -218,6 +218,7 @@ export default function App() {
         <HistoryScreen
           onViewDetail={(exam) => setNav({ screen: 'history-detail', exam })}
           onBack={() => setNav({ screen: 'home' })}
+          onGoToPremium={() => setNav({ screen: 'premium' })}
         />
       )}
 
