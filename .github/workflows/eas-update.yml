@@ -1,0 +1,70 @@
+name: Expo Update — develop
+
+on:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: eas-update-develop
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Publish EAS Update
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish EAS Update (branch develop)
+        id: update
+        run: |
+          eas update \
+            --branch develop \
+            --message "${{ github.event.head_commit.message }}" \
+            --non-interactive
+
+      - name: Write test link to job summary
+        run: |
+          DEEP_LINK="exp+labia://expo-development-client/?url=https%3A%2F%2Fu.expo.dev%2F8d010114-50a6-4e90-bcab-4b60fbec9fbc%3Fchannel-name%3Ddevelop"
+          EAS_DASHBOARD="https://expo.dev/@joaofay/cardio-risk-calculator"
+          {
+            echo "## Expo Go — Link de Teste"
+            echo ""
+            echo "| Campo | Valor |"
+            echo "|---|---|"
+            echo "| Branch | \`develop\` |"
+            echo "| Commit | \`${{ github.sha }}\` |"
+            echo "| Autor | ${{ github.actor }} |"
+            echo "| Mensagem | ${{ github.event.head_commit.message }} |"
+            echo ""
+            echo "### Como testar no Android"
+            echo ""
+            echo "1. Instale o **LabIA Dev Build** no dispositivo (gerado via \`eas build --profile development\`)"
+            echo "2. Abra o link abaixo no Android para carregar o update:"
+            echo ""
+            echo "   \`\`\`"
+            echo "   $DEEP_LINK"
+            echo "   \`\`\`"
+            echo ""
+            echo "3. Ou acesse o painel EAS para ver todos os updates: [$EAS_DASHBOARD]($EAS_DASHBOARD)"
+            echo ""
+            echo "> O app já verifica atualizações automaticamente ao abrir, desde que o dev build esteja instalado e conectado ao canal \`develop\`."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -5,6 +5,12 @@
     "version": "1.1.0",
     "scheme": "labia",
     "orientation": "portrait",
+    "updates": {
+      "url": "https://u.expo.dev/8d010114-50a6-4e90-bcab-4b60fbec9fbc"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,

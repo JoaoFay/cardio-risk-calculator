@@ -7,18 +7,21 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "develop",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://cardio-risk-api.vercel.app"
       }
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://cardio-risk-api.vercel.app"
       }
     },
     "production": {
       "autoIncrement": true,
+      "channel": "production",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://cardio-risk-api.vercel.app"
       }
