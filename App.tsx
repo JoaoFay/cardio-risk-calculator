@@ -28,6 +28,8 @@ import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
 import EditExamScreen from './src/screens/EditExamScreen';
 import PremiumScreen from './src/screens/PremiumScreen';
 import RemindersScreen from './src/screens/RemindersScreen';
+import ExamPrepGuideScreen from './src/screens/ExamPrepGuideScreen';
+import GlossaryScreen from './src/screens/GlossaryScreen';
 import UpgradeModal from './src/components/UpgradeModal';
 import { RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, TireoideResult, PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, TireoideInput, SavedExam, ExamType } from './src/types';
 import { getTodayCount } from './src/storage/usageStorage';
@@ -57,7 +59,9 @@ type AppScreen =
   | { screen: 'history-detail'; exam: SavedExam }
   | { screen: 'edit-exam'; exam: SavedExam }
   | { screen: 'premium' }
-  | { screen: 'reminders' };
+  | { screen: 'reminders' }
+  | { screen: 'exam-prep-guide' }
+  | { screen: 'glossary' };
 
 const MODULE_FORM_SCREEN: Record<ExamType, AppScreen['screen']> = {
   cardio: 'cardio-form',
@@ -191,6 +195,8 @@ export default function App() {
           onSelectHistory={() => setNav({ screen: 'history' })}
           onSelectPremium={() => setNav({ screen: 'premium' })}
           onSelectReminders={() => setNav({ screen: 'reminders' })}
+          onSelectExamPrepGuide={() => setNav({ screen: 'exam-prep-guide' })}
+          onSelectGlossary={() => setNav({ screen: 'glossary' })}
           dailyCount={dailyCount}
         />
       )}
@@ -323,6 +329,14 @@ export default function App() {
 
       {nav.screen === 'reminders' && (
         <RemindersScreen onBack={() => setNav({ screen: 'home' })} />
+      )}
+
+      {nav.screen === 'exam-prep-guide' && (
+        <ExamPrepGuideScreen onBack={() => setNav({ screen: 'home' })} />
+      )}
+
+      {nav.screen === 'glossary' && (
+        <GlossaryScreen onBack={() => setNav({ screen: 'home' })} />
       )}
 
       <UpgradeModal

@@ -10,10 +10,12 @@ interface Props {
   onSelectHistory: () => void;
   onSelectPremium: () => void;
   onSelectReminders: () => void;
+  onSelectExamPrepGuide: () => void;
+  onSelectGlossary: () => void;
   dailyCount?: number;
 }
 
-export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectTireoide, onSelectHistory, onSelectPremium, onSelectReminders, dailyCount }: Props) {
+export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectTireoide, onSelectHistory, onSelectPremium, onSelectReminders, onSelectExamPrepGuide, onSelectGlossary, dailyCount }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.titleRow}>
@@ -150,6 +152,38 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
         <Text style={[styles.cardArrow, styles.cardArrowReminders]}>›</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={[styles.card, styles.cardPrepGuide]}
+        onPress={onSelectExamPrepGuide}
+        accessibilityLabel="Abrir guia de preparação para exames"
+        accessibilityRole="button"
+      >
+        <Text style={styles.cardIcon}>📝</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitlePrepGuide]}>Guia de Preparação</Text>
+          <Text style={styles.cardDescription}>
+            Saiba como se preparar para cada exame: jejum, hidratação e medicamentos.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowPrepGuide]}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.card, styles.cardGlossary]}
+        onPress={onSelectGlossary}
+        accessibilityLabel="Abrir glossário de marcadores"
+        accessibilityRole="button"
+      >
+        <Text style={styles.cardIcon}>🔬</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitleGlossary]}>Glossário de Marcadores</Text>
+          <Text style={styles.cardDescription}>
+            Entenda os termos técnicos dos seus exames em linguagem simples.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowGlossary]}>›</Text>
+      </TouchableOpacity>
+
       <Text style={styles.footerDisclaimer}>
         LabIA é um app educativo. Não substitui consulta médica.
       </Text>
@@ -219,6 +253,12 @@ const styles = StyleSheet.create({
   cardReminders: { borderLeftColor: '#e67e22' },
   cardTitleReminders: { color: '#e67e22' },
   cardArrowReminders: { color: '#e67e22' },
+  cardPrepGuide: { borderLeftColor: '#27ae60' },
+  cardTitlePrepGuide: { color: '#27ae60' },
+  cardArrowPrepGuide: { color: '#27ae60' },
+  cardGlossary: { borderLeftColor: '#2c3e50' },
+  cardTitleGlossary: { color: '#2c3e50' },
+  cardArrowGlossary: { color: '#2c3e50' },
   footerDisclaimer: {
     marginTop: 24,
     textAlign: 'center',
