@@ -40,6 +40,16 @@
     "plugins": [
       "expo-font",
       [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#2c3e50",
+          "sounds": [],
+          "androidMode": "default",
+          "androidCollapsedTitle": "LabIA"
+        }
+      ],
+      [
         "@sentry/react-native",
         {
           "organization": "cfneves",

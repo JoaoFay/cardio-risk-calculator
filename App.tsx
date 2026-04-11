@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 import {
   useFonts,
@@ -9,6 +9,7 @@ import {
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Sentry from '@sentry/react-native';
+import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -24,10 +25,14 @@ import HistoryScreen from './src/screens/HistoryScreen';
 import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
 import EditExamScreen from './src/screens/EditExamScreen';
 import PremiumScreen from './src/screens/PremiumScreen';
+import RemindersScreen from './src/screens/RemindersScreen';
 import UpgradeModal from './src/components/UpgradeModal';
-import { RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, SavedExam } from './src/types';
+import { RiskResult, HemogramaResult, LipidogramaResult, MetabolicResult, PatientInput, HemogramaInput, LipidogramaInput, MetabolicInput, SavedExam, ExamType } from './src/types';
 import { getTodayCount } from './src/storage/usageStorage';
 import { isPremium } from './src/storage/premiumStorage';
+import { getModuleFromNotificationData } from './src/services/notificationService';
+import { getReminderByModule, updateReminder } from './src/storage/reminderStorage';
+import { getLastExamByType } from './src/storage/examStorage';
 
 Sentry.init({ dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || '' });
 
@@ -47,7 +52,15 @@ type AppScreen =
   | { screen: 'history' }
   | { screen: 'history-detail'; exam: SavedExam }
   | { screen: 'edit-exam'; exam: SavedExam }
-  | { screen: 'premium' };
+  | { screen: 'premium' }
+  | { screen: 'reminders' };
+
+const MODULE_FORM_SCREEN: Record<ExamType, AppScreen['screen']> = {
+  cardio: 'cardio-form',
+  hemograma: 'hemograma-form',
+  lipidograma: 'lipidograma-form',
+  metabolico: 'metabolico-form',
+};
 
 const STALE_KEY = 'labia:stale_exams';
 
@@ -57,6 +70,7 @@ export default function App() {
   const [staleExamIds, setStaleExamIds] = useState<Set<string>>(new Set());
   const [dailyCount, setDailyCount] = useState<number | undefined>(undefined);
   const [showHistoryUpgrade, setShowHistoryUpgrade] = useState(false);
+  const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -120,6 +134,38 @@ export default function App() {
     }
   }, [fontsLoaded, fontError, appReady]);
 
+  // Sync last exam dates into reminder configs so notifications are calculated correctly
+  useEffect(() => {
+    const syncLastExamDates = async () => {
+      const moduleTypes: ExamType[] = ['cardio', 'hemograma', 'lipidograma', 'metabolico'];
+      await Promise.all(moduleTypes.map(async (moduleType) => {
+        const lastExam = await getLastExamByType(moduleType);
+        if (lastExam) {
+          const config = await getReminderByModule(moduleType);
+          if (config.lastExamDate !== lastExam.examDate) {
+            await updateReminder(moduleType, { lastExamDate: lastExam.examDate });
+          }
+        }
+      }));
+    };
+    syncLastExamDates();
+  }, []);
+
+  // Handle notification taps — navigate to the relevant module form
+  useEffect(() => {
+    notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data as Record<string, unknown>;
+      const moduleType = getModuleFromNotificationData(data);
+      if (moduleType) {
+        const targetScreen = MODULE_FORM_SCREEN[moduleType];
+        setNav({ screen: targetScreen } as AppScreen);
+      }
+    });
+    return () => {
+      notificationResponseListener.current?.remove();
+    };
+  }, []);
+
   if ((!fontsLoaded && !fontError) || !appReady) return null;
 
   return (
@@ -138,6 +184,7 @@ export default function App() {
           onSelectMetabolico={() => setNav({ screen: 'metabolico-form' })}
           onSelectHistory={() => setNav({ screen: 'history' })}
           onSelectPremium={() => setNav({ screen: 'premium' })}
+          onSelectReminders={() => setNav({ screen: 'reminders' })}
           dailyCount={dailyCount}
         />
       )}
@@ -248,6 +295,10 @@ export default function App() {
 
       {nav.screen === 'premium' && (
         <PremiumScreen onBack={() => setNav({ screen: 'home' })} />
+      )}
+
+      {nav.screen === 'reminders' && (
+        <RemindersScreen onBack={() => setNav({ screen: 'home' })} />
       )}
 
       <UpgradeModal

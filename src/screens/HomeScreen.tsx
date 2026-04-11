@@ -8,10 +8,11 @@ interface Props {
   onSelectMetabolico: () => void;
   onSelectHistory: () => void;
   onSelectPremium: () => void;
+  onSelectReminders: () => void;
   dailyCount?: number;
 }
 
-export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectHistory, onSelectPremium, dailyCount }: Props) {
+export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelectLipidograma, onSelectMetabolico, onSelectHistory, onSelectPremium, onSelectReminders, dailyCount }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.titleRow}>
@@ -116,6 +117,22 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
         <Text style={[styles.cardArrow, styles.cardArrowHistory]}>›</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={[styles.card, styles.cardReminders]}
+        onPress={onSelectReminders}
+        accessibilityLabel="Gerenciar lembretes de exames"
+        accessibilityRole="button"
+      >
+        <Text style={styles.cardIcon}>🔔</Text>
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, styles.cardTitleReminders]}>Lembretes</Text>
+          <Text style={styles.cardDescription}>
+            Configure notificações periódicas para lembrar de refazer seus exames.
+          </Text>
+        </View>
+        <Text style={[styles.cardArrow, styles.cardArrowReminders]}>›</Text>
+      </TouchableOpacity>
+
       <Text style={styles.footerDisclaimer}>
         LabIA é um app educativo. Não substitui consulta médica.
       </Text>
@@ -179,6 +196,9 @@ const styles = StyleSheet.create({
   cardArrowMetabolico: { color: '#16a085' },
   cardTitleHistory: { color: '#7f8c8d' },
   cardArrowHistory: { color: '#7f8c8d' },
+  cardReminders: { borderLeftColor: '#e67e22' },
+  cardTitleReminders: { color: '#e67e22' },
+  cardArrowReminders: { color: '#e67e22' },
   footerDisclaimer: {
     marginTop: 24,
     textAlign: 'center',
