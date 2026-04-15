@@ -1,12 +1,22 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SavedExam, RiskResult } from '../types';
+import { getAIInterpretation } from '../services/openai';
+import { getHemogramaInterpretation } from '../services/hemograma';
+import { getLipidogramaInterpretation } from '../services/lipidograma';
+import { getMetabolicoInterpretation } from '../services/metabolico';
+import { getTireoideInterpretation } from '../services/tireoide';
+import { getTodayCount } from '../storage/usageStorage';
+import { isPremium } from '../storage/premiumStorage';
+import { updateExam } from '../storage/examStorage';
 
 interface Props {
   exam: SavedExam;
   onBack: () => void;
   onEdit: (exam: SavedExam) => void;
   showStaleWarning?: boolean;
+  onRefresh?: (exam: SavedExam) => void;
+  onClearStale?: (examId: string) => void;
 }
 
 const MODULE_CONFIG = {
@@ -51,10 +61,55 @@ const riskLabels: Record<string, string> = {
   low: 'Baixo', borderline: 'Limítrofe', intermediate: 'Intermediário', high: 'Alto',
 };
 
-export default function HistoryDetailScreen({ exam, onBack, onEdit, showStaleWarning = false }: Props) {
+export default function HistoryDetailScreen({ exam, onBack, onEdit, showStaleWarning = false, onRefresh, onClearStale }: Props) {
   const cfg = MODULE_CONFIG[exam.type];
   const markers = renderMarkers(exam);
   const aiInterpretation = (exam.result as any).aiInterpretation as string;
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleRefetch() {
+    setRefreshing(true);
+    setError(null);
+    try {
+      const premium = await isPremium();
+      if (!premium) {
+        const count = await getTodayCount();
+        if (count >= 3) {
+          setError('Limite diário atingido. Atualize para Premium para refazer análises ilimitadas.');
+          setRefreshing(false);
+          return;
+        }
+      }
+      let newAI = '';
+      if (exam.type === 'cardio') {
+        const input = exam.input as any;
+        const result = exam.result as RiskResult;
+        newAI = await getAIInterpretation(input, result);
+      } else if (exam.type === 'hemograma') {
+        newAI = await getHemogramaInterpretation(exam.input as any);
+      } else if (exam.type === 'lipidograma') {
+        newAI = await getLipidogramaInterpretation(exam.input as any, exam.result as any);
+      } else if (exam.type === 'metabolico') {
+        newAI = await getMetabolicoInterpretation(exam.input as any, exam.result as any);
+      } else if (exam.type === 'tireoide') {
+        newAI = await getTireoideInterpretation(exam.input as any, exam.result as any);
+      }
+      const updatedResult = { ...exam.result, aiInterpretation: newAI } as SavedExam['result'];
+      const updatedExam = { ...exam, result: updatedResult };
+      await updateExam(exam.id, { result: updatedResult });
+      if (onRefresh) {
+        onRefresh(updatedExam);
+      }
+      if (onClearStale) {
+        onClearStale(exam.id);
+      }
+    } catch (err: any) {
+      setError(err?.message ?? 'Erro ao refazer análise');
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -84,13 +139,28 @@ export default function HistoryDetailScreen({ exam, onBack, onEdit, showStaleWar
 
       {/* AI interpretation */}
       {showStaleWarning && (
-        <View style={styles.staleWarning}>
-          <Text 
-            style={styles.staleWarningText}
-            accessibilityLabel="Aviso: interpretação pode estar desatualizada"
-            accessibilityRole="text"
-          >⚠️ Esta interpretação foi gerada antes da sua edição e pode estar desatualizada.</Text>
-        </View>
+        <>
+          <View style={styles.staleWarning}>
+            <Text 
+              style={styles.staleWarningText}
+              accessibilityLabel="Aviso: interpretação pode estar desatualizada"
+              accessibilityRole="text"
+            >⚠️ Esta interpretação foi gerada antes da sua edição e pode estar desatualizada.</Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.refetchButton, { borderColor: cfg.color }]}
+            onPress={handleRefetch}
+            disabled={refreshing}
+            accessibilityLabel="Refazer interpretação da IA"
+            accessibilityRole="button"
+          >
+            {refreshing
+              ? <ActivityIndicator size="small" color={cfg.color} />
+              : <Text style={[styles.refetchButtonText, { color: cfg.color }]}>🔄 Refazer interpretação da IA</Text>
+            }
+          </TouchableOpacity>
+          {error && <Text style={styles.errorText}>{error}</Text>}
+        </>
       )}
       <View style={styles.aiCard}>
         <Text style={[styles.aiTitle, { color: cfg.color }]}>Interpretação por IA</Text>
@@ -184,4 +254,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   editButtonText: { fontSize: 15, fontWeight: '600' },
+  refetchButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  refetchButtonText: { fontSize: 14, fontWeight: '600' },
+  errorText: { fontSize: 12, color: '#c0392b', marginTop: 4, textAlign: 'center' },
 });

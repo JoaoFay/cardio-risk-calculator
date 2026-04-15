@@ -306,6 +306,8 @@ export default function App() {
           onBack={() => setNav({ screen: 'history' })}
           onEdit={(exam) => setNav({ screen: 'edit-exam', exam })}
           showStaleWarning={staleExamIds.has(nav.exam.id)}
+          onRefresh={(updated) => setNav({ screen: 'history-detail', exam: updated })}
+          onClearStale={clearStale}
         />
       )}
 
