@@ -176,7 +176,7 @@ export default function HomeScreen({ onSelectCardio, onSelectHemograma, onSelect
       >
         <Text style={styles.cardIcon}>🔬</Text>
         <View style={styles.cardTextContainer}>
-          <Text style={[styles.cardTitle, styles.cardTitleGlossary]}>Glossário de Marcadores</Text>
+          <Text style={[styles.cardTitle, styles.cardTitleGlossary]}>Entenda seus resultados</Text>
           <Text style={styles.cardDescription}>
             Entenda os termos técnicos dos seus exames em linguagem simples.
           </Text>

@@ -258,7 +258,7 @@ export default function GlossaryScreen({ onBack }: Props) {
           <Text style={styles.backText}>Início</Text>
         </TouchableOpacity>
 
-        <Text style={styles.pageTitle}>Glossário de Marcadores</Text>
+        <Text style={styles.pageTitle}>Entenda seus resultados</Text>
         <Text style={styles.pageSubtitle}>
           Toque em qualquer marcador para ver uma explicação em linguagem simples.
         </Text>
