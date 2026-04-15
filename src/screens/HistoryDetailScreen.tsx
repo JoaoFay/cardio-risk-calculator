@@ -85,7 +85,11 @@ export default function HistoryDetailScreen({ exam, onBack, onEdit, showStaleWar
       {/* AI interpretation */}
       {showStaleWarning && (
         <View style={styles.staleWarning}>
-          <Text style={styles.staleWarningText}>⚠️  A análise pode não refletir os valores editados</Text>
+          <Text 
+            style={styles.staleWarningText}
+            accessibilityLabel="Aviso: interpretação pode estar desatualizada"
+            accessibilityRole="text"
+          >⚠️ Esta interpretação foi gerada antes da sua edição e pode estar desatualizada.</Text>
         </View>
       )}
       <View style={styles.aiCard}>
@@ -164,14 +168,12 @@ const styles = StyleSheet.create({
   },
   disclaimer: { fontSize: 12, color: '#7d5a00', lineHeight: 18 },
   staleWarning: {
-    backgroundColor: '#fff8e1',
-    borderLeftWidth: 4,
-    borderLeftColor: '#f39c12',
-    borderRadius: 6,
-    padding: 10,
+    backgroundColor: '#fff3cd',
+    borderRadius: 8,
+    padding: 12,
     marginBottom: 8,
   },
-  staleWarningText: { fontSize: 12, color: '#7d5a00' },
+  staleWarningText: { fontSize: 13, color: '#856404', lineHeight: 18 },
   editButton: {
     marginTop: 20,
     borderWidth: 1,
