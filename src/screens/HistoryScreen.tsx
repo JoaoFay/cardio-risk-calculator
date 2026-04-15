@@ -16,6 +16,7 @@ import MarkerChart from '../components/MarkerChart';
 
 interface Props {
   onViewDetail: (exam: SavedExam) => void;
+  onEdit: (exam: SavedExam) => void;
   onBack: () => void;
   onGoToPremium: () => void;
 }
@@ -69,7 +70,7 @@ function formatMarkersSummary(exam: SavedExam): string {
   }
 }
 
-export default function HistoryScreen({ onViewDetail, onBack, onGoToPremium }: Props) {
+export default function HistoryScreen({ onViewDetail, onEdit, onBack, onGoToPremium }: Props) {
   const [exams, setExams] = useState<SavedExam[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -163,7 +164,7 @@ export default function HistoryScreen({ onViewDetail, onBack, onGoToPremium }: P
         </View>
       )}
 
-      {!loading && (Object.keys(groups) as Array<keyof typeof groups>).map(type => {
+      {!loading && (Object.keys(groups) as (keyof typeof groups)[]).map(type => {
         const list = groups[type];
         if (list.length === 0) return null;
         const cfg = MODULE_CONFIG[type];
@@ -201,6 +202,15 @@ export default function HistoryScreen({ onViewDetail, onBack, onGoToPremium }: P
                   {exam.labName ? <Text style={styles.examLab}>{exam.labName}</Text> : null}
                   <Text style={styles.examMarkers}>{formatMarkersSummary(exam)}</Text>
                 </View>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => onEdit(exam)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityLabel={`Editar exame de ${exam.type} de ${exam.examDateDisplay}`}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.editIcon}>✏️</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => handleDelete(exam)}
@@ -283,6 +293,8 @@ const styles = StyleSheet.create({
   examDate: { fontSize: 14, fontWeight: '600', color: '#222' },
   examLab: { fontSize: 12, color: '#888', marginTop: 2 },
   examMarkers: { fontSize: 11, color: '#777', marginTop: 4 },
+  editButton: { padding: 4, marginRight: 12 },
+  editIcon: { fontSize: 18, color: '#2980b9' },
   deleteButton: { padding: 4 },
   deleteIcon: { fontSize: 18 },
 });

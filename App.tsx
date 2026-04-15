@@ -294,6 +294,7 @@ export default function App() {
       {nav.screen === 'history' && (
         <HistoryScreen
           onViewDetail={(exam) => setNav({ screen: 'history-detail', exam })}
+          onEdit={(exam) => setNav({ screen: 'edit-exam', exam })}
           onBack={() => setNav({ screen: 'home' })}
           onGoToPremium={() => setNav({ screen: 'premium' })}
         />
