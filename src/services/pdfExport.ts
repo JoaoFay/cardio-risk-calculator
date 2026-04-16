@@ -29,7 +29,7 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
-function buildMarkersRows(exam: SavedExam): Array<{ label: string; value: string }> {
+function buildMarkersRows(exam: SavedExam): { label: string; value: string }[] {
   const m = exam.markers;
 
   if (exam.type === 'cardio') {

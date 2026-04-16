@@ -159,7 +159,7 @@ export default function HistoryScreen({ onViewDetail, onEdit, onBack, onGoToPrem
           <Text style={styles.emptyIcon}>📋</Text>
           <Text style={styles.emptyTitle}>Nenhum exame salvo</Text>
           <Text style={styles.emptyText}>
-            Após calcular ou interpretar um exame, toque em "Salvar este exame" para que ele apareça aqui.
+            Após calcular ou interpretar um exame, toque em &quot;Salvar este exame&quot; para que ele apareça aqui.
           </Text>
         </View>
       )}

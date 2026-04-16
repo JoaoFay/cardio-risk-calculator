@@ -295,7 +295,7 @@ export default function GlossaryScreen({ onBack }: Props) {
         </ScrollView>
 
         {filtered.length === 0 && (
-          <Text style={styles.emptyText}>Nenhum marcador encontrado para "{search}".</Text>
+          <Text style={styles.emptyText}>Nenhum marcador encontrado para &quot;{search}&quot;.</Text>
         )}
 
         {filtered.map((entry) => (
