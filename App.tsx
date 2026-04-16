@@ -148,35 +148,37 @@ export default function App() {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       const currentScreen = nav.screen;
       
+      // Allow default back behavior on onboarding (exit app)
       if (currentScreen === 'onboarding') {
         return false;
       }
       
-      if (currentScreen === 'home') {
-        return false;
-      }
-      
+      // Navigate back within app instead of exiting to home
       if (currentScreen.startsWith('edit-exam') || currentScreen.startsWith('history-detail')) {
         setNav({ screen: 'history' });
         return true;
       }
       
-      if (currentScreen.endsWith('-result')) {
+      if (currentScreen.endsWith('-result') || currentScreen.endsWith('-form')) {
         setNav({ screen: 'home' });
         return true;
       }
       
-      if (currentScreen.endsWith('-form')) {
+      if (currentScreen === 'history' || currentScreen === 'premium' || 
+          currentScreen === 'reminders' || currentScreen === 'exam-prep-guide' || 
+          currentScreen === 'glossary') {
         setNav({ screen: 'home' });
         return true;
       }
       
-      setNav({ screen: 'home' });
-      return true;
+      return false;
     });
     
     return () => backHandler.remove();
   }, [nav.screen]);
+
+  // StatusBar: hide on non-home screens to avoid overlap with back button
+  const statusBarHidden = nav.screen !== 'home' && nav.screen !== 'onboarding';
 
   // Sync last exam dates into reminder configs so notifications are calculated correctly
   useEffect(() => {
@@ -214,7 +216,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" hidden={statusBarHidden} />
 
       {nav.screen === 'onboarding' && (
         <OnboardingScreen onComplete={() => setNav({ screen: 'home' })} />
