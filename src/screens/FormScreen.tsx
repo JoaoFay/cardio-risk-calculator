@@ -60,7 +60,6 @@ export default function FormScreen({ onResult, onBack, onGoToPremium }: Props) {
       setHdl(String(i.hdl));
       setAutoFillDate(exam.examDateDisplay);
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function validate(): boolean {

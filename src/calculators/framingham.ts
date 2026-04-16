@@ -3,10 +3,6 @@ import { PatientInput } from '../types';
 // Framingham Risk Score (2008 - D'Agostino et al., Circulation 2008;117:743-753)
 // General cardiovascular disease risk (not just coronary) — freely published, no copyright on formula
 
-function logistic(x: number): number {
-  return 1 / (1 + Math.exp(-x));
-}
-
 export function calculateFramingham(p: PatientInput): number {
   // Coefficients from the published paper (Table 2)
   // Using the general CVD model (men and women separate)
