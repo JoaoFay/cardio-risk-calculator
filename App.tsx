@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
+import { SafeAreaView, StatusBar, StyleSheet, BackHandler } from 'react-native';
 import {
   useFonts,
   Inter_400Regular,
@@ -143,6 +143,43 @@ export default function App() {
     }
   }, [fontsLoaded, fontError, appReady]);
 
+  // Handle hardware back button on Android
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      const currentScreen = nav.screen;
+      
+      // Allow default back behavior on onboarding (exit app)
+      if (currentScreen === 'onboarding') {
+        return false;
+      }
+      
+      // Navigate back within app instead of exiting to home
+      if (currentScreen.startsWith('edit-exam') || currentScreen.startsWith('history-detail')) {
+        setNav({ screen: 'history' });
+        return true;
+      }
+      
+      if (currentScreen.endsWith('-result') || currentScreen.endsWith('-form')) {
+        setNav({ screen: 'home' });
+        return true;
+      }
+      
+      if (currentScreen === 'history' || currentScreen === 'premium' || 
+          currentScreen === 'reminders' || currentScreen === 'exam-prep-guide' || 
+          currentScreen === 'glossary') {
+        setNav({ screen: 'home' });
+        return true;
+      }
+      
+      return false;
+    });
+    
+    return () => backHandler.remove();
+  }, [nav.screen]);
+
+  // StatusBar: hide on non-home screens to avoid overlap with back button
+  const statusBarHidden = nav.screen !== 'home' && nav.screen !== 'onboarding';
+
   // Sync last exam dates into reminder configs so notifications are calculated correctly
   useEffect(() => {
     const syncLastExamDates = async () => {
@@ -179,7 +216,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" hidden={statusBarHidden} />
 
       {nav.screen === 'onboarding' && (
         <OnboardingScreen onComplete={() => setNav({ screen: 'home' })} />
@@ -353,5 +390,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#0A1628' },
 });

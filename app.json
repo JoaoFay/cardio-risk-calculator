@@ -14,7 +14,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "privacyPolicyUrl": "https://joaofay.github.io/labia-privacy/",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -22,8 +21,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.drjuaum.labia",
-      "privacyPolicyUrl": "https://joaofay.github.io/labia-privacy/"
+      "bundleIdentifier": "com.drjuaum.labia"
     },
     "android": {
       "adaptiveIcon": {
