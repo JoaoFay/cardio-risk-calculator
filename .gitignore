@@ -40,3 +40,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Signing credentials (never commit)
+signing.properties
+
+# Playwright test outputs
+playwright-report/
+test-results/

@@ -50,6 +50,13 @@ const MODULE_CONFIG = {
     chartLabel: 'Glicemia Jejum',
     chartUnit: 'mg/dL',
   },
+  tireoide: {
+    label: 'Tireoide',
+    color: '#1abc9c',
+    chartMarker: 'tsh' as const,
+    chartLabel: 'TSH',
+    chartUnit: 'mIU/L',
+  },
 };
 
 function formatMarkersSummary(exam: SavedExam): string {
@@ -62,10 +69,15 @@ function formatMarkersSummary(exam: SavedExam): string {
     return parts.join(' · ');
   } else if (exam.type === 'lipidograma') {
     return `CT: ${m.totalCholesterol} · LDL: ${m.ldl} · HDL: ${m.hdl} · TG: ${m.triglycerides}`;
-  } else {
+  } else if (exam.type === 'metabolico') {
     const parts = [`Glicemia: ${m.glicemiaJejum} mg/dL`];
     if (m.hbA1c != null) parts.push(`HbA1c: ${m.hbA1c}%`);
     if (m.homaIR != null) parts.push(`HOMA-IR: ${m.homaIR}`);
+    return parts.join(' · ');
+  } else {
+    const parts = [`TSH: ${m.tsh} mIU/L`];
+    if (m.t4livre != null) parts.push(`T4L: ${m.t4livre} ng/dL`);
+    if (m.antiTPO != null) parts.push(`Anti-TPO: ${m.antiTPO}`);
     return parts.join(' · ');
   }
 }
@@ -127,6 +139,7 @@ export default function HistoryScreen({ onViewDetail, onEdit, onBack, onGoToPrem
     hemograma: exams.filter(e => e.type === 'hemograma'),
     lipidograma: exams.filter(e => e.type === 'lipidograma'),
     metabolico: exams.filter(e => e.type === 'metabolico'),
+    tireoide: exams.filter(e => e.type === 'tireoide'),
   } as const;
 
   const isEmpty = exams.length === 0;

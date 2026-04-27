@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, BackHandler } from 'react-native';
+import { StatusBar, StyleSheet, BackHandler } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   useFonts,
   Inter_400Regular,
@@ -215,6 +216,7 @@ export default function App() {
   if ((!fontsLoaded && !fontError) || !appReady) return null;
 
   return (
+    <SafeAreaProvider>
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" hidden={statusBarHidden} />
 
@@ -386,6 +388,7 @@ export default function App() {
         reason="history"
       />
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
